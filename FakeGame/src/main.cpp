@@ -10,7 +10,7 @@ int main()
 	int health = 100;
 	int mana = 100;
 	signed char gold = 0;
-	long miles = 5;
+	short miles = 5;
 	float rate = .1f;
 	double science = .1f;
 
