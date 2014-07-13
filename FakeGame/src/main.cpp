@@ -3,7 +3,7 @@
 using namespace std;
 
 template <class T>
-void show(const std::string &name, const T &value);
+void show(const std::string& name, const T& value);
 
 int main()
 {
@@ -36,7 +36,7 @@ int main()
 }
 
 template <class T>
-void show(const std::string &name, const T &value)
+void show(const std::string& name, const T& value)
 {
 	cout << name << "(" << sizeof(T) << "): " << value << endl;
 }
