@@ -14,19 +14,21 @@ public:
 
 	typedef char* address_t;
 	typedef std::vector<address_t> addresses_t;
-
-	process_id findProcessWithName(const std::string& name) const;
-	void close_process(process_id id) const;
-
+	
 	const addresses_t& getMatchingAddresses() const { return m_addresses; }
 	void keepAddressesWithValue(const value_t& value, value_size_t size);
 
-	void modifyMatchingAddresses(const value_t& value, value_size_t size);
+	void modifyMatchingAddresses(const value_t& value, value_size_t size) const;
 
-	void reset() { m_addresses = addresses_t(); }
+	CheatEngine(const std::string& processName);
+	~CheatEngine();
 
 private:
 	addresses_t m_addresses;
+	process_id m_process;
+
+	process_id openProcessWithName(const std::string& name) const;
+	void closeProcess(process_id id) const;
 };
 
 #endif
