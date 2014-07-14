@@ -16,9 +16,12 @@ int main() {
 	CheatEngine engine(process);
 
   ValueType type = ask_for_value_type();
+  vector<char> value = ask_for_value(type);
 
+  // pause
 	char c;
   cin >> c;
+
 	return 0;
 }
 
