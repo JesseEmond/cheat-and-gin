@@ -30,6 +30,7 @@ private:
 public:
   static std::vector<pid_t> getProcessesWithName(const std::string& name);
 
+  void addAddressesWithValue(const value_t& value, value_size_t size);
 	void keepAddressesWithValue(const value_t& value, value_size_t size);
 	void modifyMatchingAddresses(const value_t& value, value_size_t size) const;
 

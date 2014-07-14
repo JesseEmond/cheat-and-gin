@@ -16,11 +16,35 @@ int main() {
 	CheatEngine engine(process);
 
   ValueType type = ask_for_value_type();
+  size_t size = value_type_size(type);
   vector<char> value = ask_for_value(type);
+  engine.addAddressesWithValue(value.data(), size);
+
+  bool done = engine.getMatchingAddresses().empty();
+
+  while (!done) {
+    cout << endl << engine.getMatchingAddresses().size() << " addresses fitting the criterion." << endl;
+    done = ask_for<bool>("Keep searching?", "invalid boolean");
+
+    if (!done) {
+      value = ask_for_value(type);
+      engine.keepAddressesWithValue(value.data(), size);
+    }
+  }
+
+  if (!engine.getMatchingAddresses().empty()) {
+    cout << "What value should the new address(es) have?" << endl;
+    value = ask_for_value(type);
+
+    engine.modifyMatchingAddresses(value.data(), size);
+    cout << "Value(s) modified." << endl;
+  } else {
+    cout << "No address(es) fit the given value(s)." << endl;
+  }
 
   // pause
-	char c;
-  cin >> c;
+  cin.clear();
+  cin.get();
 
 	return 0;
 }

@@ -19,6 +19,10 @@ void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size
 
 }
 
+void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size) {
+
+}
+
 void CheatEngine::modifyMatchingAddresses(const value_t& value, value_size_t size) const {
 
 }
