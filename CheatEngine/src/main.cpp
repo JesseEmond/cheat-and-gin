@@ -9,6 +9,7 @@ using namespace std;
 
 pid_t ask_for_process();
 pid_t choose_process(const vector<pid_t>& processes);
+void pause();
 
 
 int main() {
@@ -42,10 +43,7 @@ int main() {
     cout << "No address(es) fit the given value(s)." << endl;
   }
 
-  // pause
-  cin.clear();
-  cin.get();
-
+  pause();
 	return 0;
 }
 
@@ -82,4 +80,9 @@ pid_t choose_process(const vector<pid_t>& processes) {
   return ask_for<pid_t>("pid", "invalid process id", [&](pid_t pid) {
 		return find(begin(processes), end(processes), pid) != end(processes);
 	});
+}
+
+void pause() {
+	cin.ignore(cin.rdbuf()->in_avail());
+	cin.get();
 }
