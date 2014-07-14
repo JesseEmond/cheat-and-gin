@@ -8,11 +8,11 @@
 using namespace std;
 
 phandle_t CheatEngine::openProcess(pid_t id) const {
-  return phandle_t();
+  return OpenProcess(PROCESS_ALL_ACCESS, false, id);
 }
 
 void CheatEngine::closeProcess(phandle_t handle) const {
-
+  CloseHandle(handle);
 }
 
 void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size) {
