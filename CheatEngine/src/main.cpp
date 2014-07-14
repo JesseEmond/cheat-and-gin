@@ -1,5 +1,6 @@
 #include "CheatEngine.h"
 #include "helper.h"
+#include "ValueType.h"
 
 #include <iostream>
 #include <vector>
@@ -10,15 +11,14 @@ pid_t ask_for_process();
 pid_t choose_process(const vector<pid_t>& processes);
 
 
-
 int main() {
   pid_t process = ask_for_process();
 	CheatEngine engine(process);
 
-	//TODO
-	cout << "todo" << endl;
+  ValueType type = ask_for_value_type();
 
-	cin.get();
+	char c;
+  cin >> c;
 	return 0;
 }
 
