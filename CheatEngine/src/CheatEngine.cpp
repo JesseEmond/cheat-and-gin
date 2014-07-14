@@ -7,9 +7,8 @@
 #include <algorithm>
 #include <iterator>
 
-CheatEngine::CheatEngine(process_id process) {
-	m_process = process;
-	openProcess(m_process);
+CheatEngine::CheatEngine(pid_t process) {
+	m_process = openProcess(process);
 }
 
 CheatEngine::~CheatEngine() {

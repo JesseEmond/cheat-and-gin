@@ -7,11 +7,11 @@
 #include <vector>
 using namespace std;
 
-void CheatEngine::openProcess(process_id id) const {
-	
+phandle_t CheatEngine::openProcess(pid_t id) const {
+  return phandle_t();
 }
 
-void CheatEngine::closeProcess(process_id id) const {
+void CheatEngine::closeProcess(phandle_t handle) const {
 
 }
 
@@ -23,8 +23,8 @@ void CheatEngine::modifyMatchingAddresses(const value_t& value, value_size_t siz
 
 }
 
-vector<process_id> CheatEngine::getProcessesWithName(const std::string& name) {
-	vector<process_id> processes;
+vector<pid_t> CheatEngine::getProcessesWithName(const std::string& name) {
+  vector<pid_t> processes;
 
 	PROCESSENTRY32 entry;
 	entry.dwSize = sizeof(PROCESSENTRY32);

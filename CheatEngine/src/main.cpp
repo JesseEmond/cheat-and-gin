@@ -6,13 +6,13 @@
 #include <cassert>
 using namespace std;
 
-process_id ask_for_process();
-process_id choose_process(const vector<process_id>& processes);
+pid_t ask_for_process();
+pid_t choose_process(const vector<pid_t>& processes);
 
 
 
 int main() {
-	process_id process = ask_for_process();
+  pid_t process = ask_for_process();
 	CheatEngine engine(process);
 
 	//TODO
@@ -24,8 +24,8 @@ int main() {
 
 
 
-process_id ask_for_process() {
-	vector<process_id> processes;
+pid_t ask_for_process() {
+	vector<pid_t> processes;
 
 	do {
 		string name = ask_for<string>("process name", "invalid process name");
@@ -37,22 +37,22 @@ process_id ask_for_process() {
 	} while (processes.empty());
 	assert(!processes.empty());
 
-	process_id process = processes.front();
+  pid_t process = processes.front();
 
 	if (processes.size() > 1)
-		process = choose_process(processes);
+    process = choose_process(processes);
 
 	return process;
 }
 
-process_id choose_process(const vector<process_id>& processes) {
+pid_t choose_process(const vector<pid_t>& processes) {
 	assert(processes.size() > 1);
 
 	cout << "Multiple possible processes, pick one of the following pids: ";
-	copy(begin(processes), end(processes), ostream_iterator<process_id>(cout, "  "));
+  copy(begin(processes), end(processes), ostream_iterator<pid_t>(cout, "  "));
 	cout << endl;
 
-	return ask_for<process_id>("pid", "invalid process id", [&](process_id pid) {
+  return ask_for<pid_t>("pid", "invalid process id", [&](pid_t pid) {
 		return find(begin(processes), end(processes), pid) != end(processes);
 	});
 }
