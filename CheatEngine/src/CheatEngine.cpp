@@ -1,7 +1,15 @@
 #include "CheatEngine.h"
 
-CheatEngine::CheatEngine(const std::string& processName) {
-	m_process = openProcessWithName(processName);
+#include "helper.h"
+
+#include <iostream>
+#include <cassert>
+#include <algorithm>
+#include <iterator>
+
+CheatEngine::CheatEngine(process_id process) {
+	m_process = process;
+	openProcess(m_process);
 }
 
 CheatEngine::~CheatEngine() {

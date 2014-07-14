@@ -2,8 +2,8 @@
 #define PLATFORM_H
 
 #ifdef _WIN32
-  #include "Windows.h"
-	typedef HANDLE process_id;
+  #include <Windows.h>
+	typedef DWORD process_id;
 #endif
 
 #endif

@@ -14,20 +14,27 @@ public:
 
 	typedef char* address_t;
 	typedef std::vector<address_t> addresses_t;
-	
+
 	const addresses_t& getMatchingAddresses() const { return m_addresses; }
-	void keepAddressesWithValue(const value_t& value, value_size_t size);
 
-	void modifyMatchingAddresses(const value_t& value, value_size_t size) const;
-
-	CheatEngine(const std::string& processName);
+	CheatEngine(process_id process);
 	~CheatEngine();
 
 private:
 	addresses_t m_addresses;
 	process_id m_process;
 
-	process_id openProcessWithName(const std::string& name) const;
+
+
+// Platform-specific:
+public:
+	static std::vector<process_id> getProcessesWithName(const std::string& name);
+
+	void keepAddressesWithValue(const value_t& value, value_size_t size);
+	void modifyMatchingAddresses(const value_t& value, value_size_t size) const;
+
+private:
+	void openProcess(process_id id) const;
 	void closeProcess(process_id id) const;
 };
 
