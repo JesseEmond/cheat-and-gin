@@ -20,7 +20,7 @@ public:
   CheatEngine(pid_t process);
 	~CheatEngine();
 
-private:
+protected:
 	addresses_t m_addresses;
   phandle_t m_process;
 

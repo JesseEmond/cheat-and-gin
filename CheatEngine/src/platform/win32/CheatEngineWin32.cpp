@@ -6,16 +6,27 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <iterator>
 #include <iostream>
+#include <cassert>
 using namespace std;
 
 // Declarations
 void write_address(phandle_t process, CheatEngine::address_t address, CheatEngine::value_t value, CheatEngine::value_size_t size);
+DWORD get_chunk_size_to_read();
+bool can_modify_page(const MEMORY_BASIC_INFORMATION& page);
 
 
 // Definitions
 phandle_t CheatEngine::openProcess(pid_t id) const {
-  return OpenProcess(PROCESS_ALL_ACCESS, false, id);
+  auto handle = OpenProcess(PROCESS_ALL_ACCESS, false, id);
+
+  if (handle == nullptr) {
+  	cerr << "couldn't open process." << endl;
+  	exit(1);
+  }
+
+  return handle;
 }
 
 void CheatEngine::closeProcess(phandle_t handle) const {
@@ -23,11 +34,34 @@ void CheatEngine::closeProcess(phandle_t handle) const {
 }
 
 void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size) {
-
+	addresses_t newAddresses;
 }
 
 void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size) {
+  assert(size > 0);
 
+  MEMORY_BASIC_INFORMATION info;
+  for (address_t address = nullptr;
+    VirtualQueryEx(m_process, address, &info, sizeof(info)) == sizeof(info);
+    address += info.RegionSize) {
+    if (can_modify_page(info)) {
+      vector<char> chunk(info.RegionSize);
+      SIZE_T bytesRead;
+      ReadProcessMemory(m_process, address, chunk.data(), info.RegionSize, &bytesRead);
+      chunk.resize(bytesRead);
+
+      for (vector<char>::size_type i = 0; i <= chunk.size() - size; ++i) {
+        address_t chunkPtr = chunk.data() + i;
+        address_t valuePtr = value;
+
+        if (equal(valuePtr, valuePtr + size, valuePtr)) {
+          address_t matchingAddress = address + i;
+
+          m_addresses.emplace_back(matchingAddress);
+        }
+      }
+    }
+  }
 }
 
 void CheatEngine::modifyMatchingAddresses(const value_t& value, value_size_t size) const {
@@ -60,4 +94,17 @@ vector<pid_t> CheatEngine::getProcessesWithName(const std::string& name) {
 void write_address(phandle_t process, CheatEngine::address_t address, CheatEngine::value_t value, CheatEngine::value_size_t size) {
 	if (!WriteProcessMemory(process, address, value, size, nullptr))
 		cerr << "error while trying to write on the other process" << endl;
+}
+
+DWORD get_chunk_size_to_read() {
+  SYSTEM_INFO system;
+  GetSystemInfo(&system);
+
+  return system.dwPageSize;
+}
+
+bool can_modify_page(const MEMORY_BASIC_INFORMATION& page) {
+	return page.State   == MEM_COMMIT  &&
+				 page.Type    == MEM_PRIVATE &&
+				 page.Protect == PAGE_READWRITE;
 }
