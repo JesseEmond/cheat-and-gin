@@ -25,7 +25,7 @@ int main() {
 
   while (!done) {
     cout << endl << engine.getMatchingAddresses().size() << " addresses fitting the criterion." << endl;
-    done = ask_for<bool>("Keep searching?", "invalid boolean");
+    done = !ask_for<bool>("Keep searching?", "invalid boolean");
 
     if (!done) {
       value = ask_for_value(type);

@@ -21,6 +21,11 @@ T ask_for(const std::string& message, const std::string& error, Pred verificatio
 	while (!(cin >> t) || !verification(t)) {
 		std::cerr << error << std::endl;
 		std::cout << message << ": ";
+
+    if (!cin) {
+      cin.clear();
+      cin.ignore(cin.rdbuf()->in_avail());
+    }
 	}
 
 	return t;
