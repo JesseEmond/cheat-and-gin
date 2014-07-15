@@ -34,7 +34,37 @@ void CheatEngine::closeProcess(phandle_t handle) const {
 }
 
 void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size) {
-	addresses_t newAddresses;
+  assert(!m_addresses.empty());
+
+	addresses_t keptAddresses;
+
+  for (auto it = begin(m_addresses);
+    it != end(m_addresses);) {
+    MEMORY_BASIC_INFORMATION info;
+    SIZE_T ret = VirtualQueryEx(m_process, *it, &info, sizeof(info));
+    assert(ret == sizeof(info));
+    assert(can_modify_page(info));
+
+    vector<char> chunk(info.RegionSize);
+    SIZE_T bytesRead;
+    ReadProcessMemory(m_process, *it, chunk.data(), info.RegionSize, &bytesRead);
+    chunk.resize(bytesRead);
+
+    auto next = upper_bound(begin(m_addresses), end(m_addresses), *it + bytesRead - 1);
+
+    address_t first = *it;
+    while (it != next) {
+      ptrdiff_t diff = *it - first;
+      address_t addrInChunk = chunk.data() + diff;
+      if (equal(addrInChunk, addrInChunk + size, value)) {
+        keptAddresses.push_back(*it);
+      }
+
+      ++it;
+    }
+  }
+
+  m_addresses = keptAddresses;
 }
 
 void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size) {
@@ -42,13 +72,14 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
 
   MEMORY_BASIC_INFORMATION info;
   for (address_t address = nullptr;
-    VirtualQueryEx(m_process, address, &info, sizeof(info)) == sizeof(info);
-    address += info.RegionSize) {
+    VirtualQueryEx(m_process, address, &info, sizeof(info)) == sizeof(info);) {
+    DWORD deltaAddr = info.RegionSize;
     if (can_modify_page(info)) {
       vector<char> chunk(info.RegionSize);
       SIZE_T bytesRead;
       ReadProcessMemory(m_process, address, chunk.data(), info.RegionSize, &bytesRead);
       chunk.resize(bytesRead);
+      deltaAddr = bytesRead;
 
       for (vector<char>::size_type i = 0; i <= chunk.size() - size; ++i) {
         address_t chunkPtr = chunk.data() + i;
@@ -57,10 +88,12 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
         if (equal(valuePtr, valuePtr + size, valuePtr)) {
           address_t matchingAddress = address + i;
 
-          m_addresses.emplace_back(matchingAddress);
+          m_addresses.push_back(matchingAddress);
         }
       }
     }
+
+    address += deltaAddr;
   }
 }
 
