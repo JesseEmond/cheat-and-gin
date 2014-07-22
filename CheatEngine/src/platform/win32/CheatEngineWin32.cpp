@@ -22,100 +22,100 @@ bool can_modify_page(const MEMORY_BASIC_INFORMATION& page);
 
 // Definitions
 phandle_t CheatEngine::openProcess(pid_t id) const {
-  auto handle = OpenProcess(PROCESS_ALL_ACCESS, false, id);
+	auto handle = OpenProcess(PROCESS_ALL_ACCESS, false, id);
 
-  if (handle == nullptr) {
-  	cerr << "couldn't open process." << endl;
-  	exit(1);
-  }
+	if (handle == nullptr) {
+		cerr << "couldn't open process." << endl;
+		exit(1);
+	}
 
-  return handle;
+	return handle;
 }
 
 void CheatEngine::closeProcess(phandle_t handle) const {
-  CloseHandle(handle);
+	CloseHandle(handle);
 }
 
 void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size) {
-  assert(size > 0);
+	assert(size > 0);
 
-  MEMORY_BASIC_INFORMATION info;
-  for (address_t address = nullptr;
-    VirtualQueryEx(m_process, address, &info, sizeof(info)) == sizeof(info);
-    address = static_cast<address_t>(info.BaseAddress) + info.RegionSize) {
-    if (can_modify_page(info)) {
-      chunk_t chunk(info.RegionSize);
-      if (!ReadProcessMemory(m_process, address, chunk.data(), info.RegionSize, nullptr)) {
-        cerr << "couldn't properly read process memory. " << GetLastError() << endl;
-      }
-      assert(!chunk.empty());
+	MEMORY_BASIC_INFORMATION info;
+	for (address_t address = nullptr;
+		VirtualQueryEx(m_process, address, &info, sizeof(info)) == sizeof(info);
+		address = static_cast<address_t>(info.BaseAddress) + info.RegionSize) {
+		if (can_modify_page(info)) {
+			chunk_t chunk(info.RegionSize);
+			if (!ReadProcessMemory(m_process, address, chunk.data(), info.RegionSize, nullptr)) {
+				cerr << "couldn't properly read process memory. " << GetLastError() << endl;
+			}
+			assert(!chunk.empty());
 
-      for (chunk_t::size_type i = 0; i <= chunk.size() - size; ++i) {
-        address_t chunkPtr = chunk.data() + i;
-        address_t valuePtr = value;
+			for (chunk_t::size_type i = 0; i <= chunk.size() - size; ++i) {
+				address_t chunkPtr = chunk.data() + i;
+				address_t valuePtr = value;
 
-        if (equal(chunkPtr, chunkPtr + size, valuePtr)) {
-          address_t matchingAddress = static_cast<address_t>(info.BaseAddress) + i;
+				if (equal(chunkPtr, chunkPtr + size, valuePtr)) {
+					address_t matchingAddress = static_cast<address_t>(info.BaseAddress) + i;
 
-          m_addresses.insert(make_pair(address, matchingAddress));
-        }
-      }
-    }
-  }
+					m_addresses.insert(make_pair(address, matchingAddress));
+				}
+			}
+		}
+	}
 }
 
 void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size) {
-  assert(!m_addresses.empty());
+	assert(!m_addresses.empty());
 
-  addresses_t keptAddresses;
+	addresses_t keptAddresses;
 
-  // Iterate over all the memory pages
-  for (auto currentPageIt = begin(m_addresses);
-    currentPageIt != end(m_addresses);) {
-    // get the range of addresses where we found a value (within that page)
-    const auto pageRange = m_addresses.equal_range(currentPageIt->first);
+	// Iterate over all the memory pages
+	for (auto currentPageIt = begin(m_addresses);
+		currentPageIt != end(m_addresses);) {
+		// get the range of addresses where we found a value (within that page)
+		const auto pageRange = m_addresses.equal_range(currentPageIt->first);
 
-    // read that memory page again (if we can still read it)
-    MEMORY_BASIC_INFORMATION info;
-    const auto len = VirtualQueryEx(m_process, currentPageIt->first, &info, sizeof(info));
-    assert(len == sizeof(info));
-    if (can_modify_page(info)) {
-      // read the chunk of memory where we had addresses before
-      chunk_t chunk(info.RegionSize);
-      if (!ReadProcessMemory(m_process, currentPageIt->first, chunk.data(), info.RegionSize, nullptr)) {
-        cerr << "couldn't properly read process memory. " << GetLastError() << endl;
-      }
-      assert(!chunk.empty());
+		// read that memory page again (if we can still read it)
+		MEMORY_BASIC_INFORMATION info;
+		const auto len = VirtualQueryEx(m_process, currentPageIt->first, &info, sizeof(info));
+		assert(len == sizeof(info));
+		if (can_modify_page(info)) {
+			// read the chunk of memory where we had addresses before
+			chunk_t chunk(info.RegionSize);
+			if (!ReadProcessMemory(m_process, currentPageIt->first, chunk.data(), info.RegionSize, nullptr)) {
+				cerr << "couldn't properly read process memory. " << GetLastError() << endl;
+			}
+			assert(!chunk.empty());
 
-      // go through all the addresses in the memory page
-      for (auto addrIt = pageRange.first; addrIt != pageRange.second; ++addrIt) {
-        assert(addrIt->second >= addrIt->first);
-        const size_t index = addrIt->second - addrIt->first;
-        assert(index + size <= chunk.size());
-        const auto addrInChunk = chunk.data() + index;
+			// go through all the addresses in the memory page
+			for (auto addrIt = pageRange.first; addrIt != pageRange.second; ++addrIt) {
+				assert(addrIt->second >= addrIt->first);
+				const size_t index = addrIt->second - addrIt->first;
+				assert(index + size <= chunk.size());
+				const auto addrInChunk = chunk.data() + index;
 
-        // if the address still matches our value, keep it.
-        if (equal(addrInChunk, addrInChunk + size, value)) {
-          keptAddresses.insert(make_pair(addrIt->first, addrIt->second));
-        }
-      }
-    }
+				// if the address still matches our value, keep it.
+				if (equal(addrInChunk, addrInChunk + size, value)) {
+					keptAddresses.insert(make_pair(addrIt->first, addrIt->second));
+				}
+			}
+		}
 
-    currentPageIt = pageRange.second;
-  }
+		currentPageIt = pageRange.second;
+	}
 
-  // keep the new addresses
-  m_addresses = keptAddresses;
+	// keep the new addresses
+	m_addresses = keptAddresses;
 }
 
 void CheatEngine::modifyMatchingAddresses(const value_t& value, value_size_t size) const {
-  for_each(begin(m_addresses), end(m_addresses), [&](std::pair<address_t, address_t> pageAddress) {
-    write_address(m_process, pageAddress.second, value, size);
-  });
+	for_each(begin(m_addresses), end(m_addresses), [&](std::pair<address_t, address_t> pageAddress) {
+		write_address(m_process, pageAddress.second, value, size);
+	});
 }
 
 vector<pid_t> CheatEngine::getProcessesWithName(const std::string& name) {
-  vector<pid_t> processes;
+	vector<pid_t> processes;
 
 	PROCESSENTRY32 entry;
 	entry.dwSize = sizeof(PROCESSENTRY32);
@@ -141,10 +141,10 @@ void write_address(phandle_t process, CheatEngine::address_t address, CheatEngin
 }
 
 DWORD get_chunk_size_to_read() {
-  SYSTEM_INFO system;
-  GetSystemInfo(&system);
+	SYSTEM_INFO system;
+	GetSystemInfo(&system);
 
-  return system.dwPageSize;
+	return system.dwPageSize;
 }
 
 bool can_modify_page(const MEMORY_BASIC_INFORMATION& page) {

@@ -8,10 +8,10 @@
 */
 
 #ifdef _WIN32
-  #include <Windows.h>
+	#include <Windows.h>
 
 	typedef DWORD pid_t;
-  typedef HANDLE phandle_t;
+	typedef HANDLE phandle_t;
 #endif
 
 #endif

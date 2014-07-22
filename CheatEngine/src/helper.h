@@ -22,10 +22,10 @@ T ask_for(const std::string& message, const std::string& error, Pred verificatio
 		std::cerr << error << std::endl;
 		std::cout << message << ": ";
 
-    if (!cin) {
-      cin.clear();
-      cin.ignore(cin.rdbuf()->in_avail());
-    }
+		if (!cin) {
+			cin.clear();
+			cin.ignore(cin.rdbuf()->in_avail());
+		}
 	}
 
 	return t;

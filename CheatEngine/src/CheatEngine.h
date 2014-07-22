@@ -17,25 +17,25 @@ public:
 
 	const addresses_t& getMatchingAddresses() const { return m_addresses; }
 
-  CheatEngine(pid_t process);
+	CheatEngine(pid_t process);
 	~CheatEngine();
 
 protected:
 	addresses_t m_addresses;
-  phandle_t m_process;
+	phandle_t m_process;
 
 
 
 // Platform-specific:
 public:
-  static std::vector<pid_t> getProcessesWithName(const std::string& name);
+	static std::vector<pid_t> getProcessesWithName(const std::string& name);
 
-  void addAddressesWithValue(const value_t& value, value_size_t size);
+	void addAddressesWithValue(const value_t& value, value_size_t size);
 	void keepAddressesWithValue(const value_t& value, value_size_t size);
 	void modifyMatchingAddresses(const value_t& value, value_size_t size) const;
 
 private:
-  phandle_t openProcess(pid_t id) const;
+	phandle_t openProcess(pid_t id) const;
 	void closeProcess(phandle_t handle) const;
 };
 

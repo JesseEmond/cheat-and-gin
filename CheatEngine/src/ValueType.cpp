@@ -42,7 +42,7 @@ ValueType ask_for_value_type() {
 		cout << endl;
 	}
 
-  size_t choice = ask_for<size_t>("value type", "invalid choice", [](size_t n) {
+	size_t choice = ask_for<size_t>("value type", "invalid choice", [](size_t n) {
 		return n >= 1 && n <= VALUE_TYPES.size();
 	});
 	assert(choice >= 1 && choice <= VALUE_TYPES.size());
@@ -79,8 +79,8 @@ vector<pair<ValueType, string>> make_value_types() {
 
 template <class T>
 vector<unsigned char> ask_value_for(const string& valueName, const string& error) {
-  stringstream ss;
-  ss << valueName << " value";
+	stringstream ss;
+	ss << valueName << " value";
 	T value = ask_for<T>(ss.str(), error);
 	unsigned char* bytes = reinterpret_cast<unsigned char*>(&value);
 	return vector<unsigned char>(bytes, bytes + sizeof(T));
