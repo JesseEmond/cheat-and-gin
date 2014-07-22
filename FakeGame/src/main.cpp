@@ -38,5 +38,5 @@ int main()
 template <class T>
 void show(const std::string& name, const T& value)
 {
-	cout << name << "(" << sizeof(T) << "): " << value << endl;
+	cout << name << "(" << sizeof(T) << "): " << value << " - " << static_cast<const void*>(&value) << endl;
 }

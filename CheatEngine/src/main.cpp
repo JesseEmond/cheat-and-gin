@@ -11,6 +11,7 @@ pid_t ask_for_process();
 pid_t choose_process(const vector<pid_t>& processes);
 void pause();
 
+const int MAX_SIZE_TO_SHOW_ADDRESSES = 15;
 
 int main() {
   pid_t process = ask_for_process();
@@ -18,13 +19,20 @@ int main() {
 
   ValueType type = ask_for_value_type();
   size_t size = value_type_size(type);
-  vector<char> value = ask_for_value(type);
+  auto value = ask_for_value(type);
   engine.addAddressesWithValue(value.data(), size);
 
   bool done = engine.getMatchingAddresses().empty();
 
   while (!done) {
-    cout << endl << engine.getMatchingAddresses().size() << " addresses fitting the criterion." << endl;
+    cout << endl << engine.getMatchingAddresses().size() << " address(es) fitting the criterion." << endl;
+    if (engine.getMatchingAddresses().size() <= MAX_SIZE_TO_SHOW_ADDRESSES) {
+      cout << "address(es): ";
+      for (auto it = engine.getMatchingAddresses().cbegin(); it != engine.getMatchingAddresses().cend(); ++it) {
+        cout << " " << static_cast<void*>(it->second);
+      }
+      cout << endl;
+    }
     done = !ask_for<bool>("Keep searching?", "invalid boolean");
 
     if (!done) {

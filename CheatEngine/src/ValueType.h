@@ -20,6 +20,6 @@ static const int VALUE_TYPE_COUNT = 6;
 
 std::size_t value_type_size(ValueType type);
 ValueType ask_for_value_type();
-std::vector<char> ask_for_value(ValueType type);
+std::vector<unsigned char> ask_for_value(ValueType type);
 
 #endif

@@ -3,6 +3,7 @@
 #include "helper.h"
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -13,7 +14,7 @@ using namespace std;
 // Declarations
 std::vector<std::pair<ValueType, std::string>> make_value_types();
 template <class T>
-std::vector<char> ask_value_for(const std::string& message, const std::string& error);
+std::vector<unsigned char> ask_value_for(const std::string& valueName, const std::string& error);
 
 class unsupported_type_exception {};
 
@@ -41,7 +42,7 @@ ValueType ask_for_value_type() {
 		cout << endl;
 	}
 
-  size_t choice = ask_for<size_t>("value size", "invalid choice", [](size_t n) {
+  size_t choice = ask_for<size_t>("value type", "invalid choice", [](size_t n) {
 		return n >= 1 && n <= VALUE_TYPES.size();
 	});
 	assert(choice >= 1 && choice <= VALUE_TYPES.size());
@@ -49,7 +50,7 @@ ValueType ask_for_value_type() {
 	return VALUE_TYPES[choice - 1].first;
 }
 
-vector<char> ask_for_value(ValueType type) {
+vector<unsigned char> ask_for_value(ValueType type) {
 	switch (type) {
 		case ValueTypes::byte_t: return ask_value_for<int8_t>("byte", "invalid byte");
 		case ValueTypes::word_t: return ask_value_for<int16_t>("word", "invalid word");
@@ -77,8 +78,10 @@ vector<pair<ValueType, string>> make_value_types() {
 }
 
 template <class T>
-vector<char> ask_value_for(const string& message, const string& error) {
-	T value = ask_for<T>(message, error);
-	char* bytes = reinterpret_cast<char*>(&value);
-	return vector<char>(bytes, bytes + sizeof(T));
+vector<unsigned char> ask_value_for(const string& valueName, const string& error) {
+  stringstream ss;
+  ss << valueName << " value";
+	T value = ask_for<T>(ss.str(), error);
+	unsigned char* bytes = reinterpret_cast<unsigned char*>(&value);
+	return vector<unsigned char>(bytes, bytes + sizeof(T));
 }

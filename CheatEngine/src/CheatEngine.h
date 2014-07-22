@@ -4,16 +4,16 @@
 #include "platform.h"
 
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 class CheatEngine
 {
 public:
-	typedef char value_size_t;
-	typedef char* value_t;
+	typedef unsigned char value_size_t;
+	typedef unsigned char* value_t;
 
-	typedef char* address_t;
-	typedef std::vector<address_t> addresses_t;
+	typedef unsigned char* address_t;
+	typedef std::unordered_multimap<address_t, address_t> addresses_t;
 
 	const addresses_t& getMatchingAddresses() const { return m_addresses; }
 
