@@ -11,8 +11,6 @@ pid_t ask_for_process();
 pid_t choose_process(const vector<pid_t>& processes);
 void pause();
 
-const int MAX_SIZE_TO_SHOW_ADDRESSES = 10;
-
 int main() {
 	pid_t process = ask_for_process();
 	CheatEngine engine(process);
@@ -26,15 +24,6 @@ int main() {
 
 	while (!done) {
 		cout << endl << engine.getMatchingBlocks().size() << " memory pag(es) containing the value." << endl;
-		if (engine.getMatchingBlocks().size() <= MAX_SIZE_TO_SHOW_ADDRESSES) {
-			cout << "address(es): ";
-			for (auto it = engine.getMatchingBlocks().cbegin(); it != engine.getMatchingBlocks().cend(); ++it) {
-				for (auto offsetIt = it->matches.cbegin(); offsetIt != it->matches.cend(); ++offsetIt) {
-					cout << " " << static_cast<address_t>(static_cast<unsigned char*>(it->baseAddress) + *offsetIt);
-				}
-			}
-			cout << endl;
-		}
 		done = !ask_for<bool>("Keep searching?", "invalid boolean");
 
 		if (!done) {
