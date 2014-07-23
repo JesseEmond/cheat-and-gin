@@ -45,10 +45,9 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
 		address = static_cast<unsigned char*>(info.BaseAddress) + info.RegionSize) {
 		if (can_modify_page(info)) {
 			chunk_t chunk(info.RegionSize);
-			if (!ReadProcessMemory(m_process, address, chunk.data(), info.RegionSize, nullptr)) {
-				cerr << "couldn't properly read process memory. " << GetLastError() << endl;
-			}
-			assert(!chunk.empty());
+      DWORD bytesRead;
+      ReadProcessMemory(m_process, address, chunk.data(), info.RegionSize, &bytesRead);
+      chunk.resize(bytesRead);
 
 			offsets_t matches;
 			for (chunk_t::size_type i = 0; i <= chunk.size() - size; ++i) {
@@ -60,7 +59,7 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
 				MemoryBlock block;
 				block.matches = matches;
 				block.baseAddress = info.BaseAddress;
-				block.size = info.RegionSize;
+        block.size = bytesRead;
 				m_blocks.push_back(block);
 			}
 		}
@@ -77,10 +76,10 @@ void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size
 
 		if (can_modify_page(info)) {
 			chunk_t chunk(blockIt->size);
-			if (!ReadProcessMemory(m_process, blockIt->baseAddress, chunk.data(), blockIt->size, nullptr)) {
-				cerr << "couldn't properly read process memory. " << GetLastError() << endl;
-			}
-			assert(!chunk.empty());
+      DWORD bytesRead;
+			ReadProcessMemory(m_process, blockIt->baseAddress, chunk.data(), blockIt->size, &bytesRead);
+      chunk.resize(bytesRead);
+      blockIt->size = bytesRead;
 
 			// from the offsets that matched before within that page, only keep the ones that still match
 			offsets_t stillMatches;
@@ -100,6 +99,9 @@ void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size
 				++blockIt;
 			}
 		}
+    else {
+      ++blockIt;
+    }
 	}
 }
 
