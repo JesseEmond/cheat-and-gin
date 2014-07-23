@@ -52,7 +52,7 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
 
 			offsets_t matches;
 			for (chunk_t::size_type i = 0; i <= chunk.size() - size; ++i) {
-				if (value_t(chunk.begin() + i, chunk.begin() + i + size) == value) {
+        if (std::equal(chunk.cbegin() + i, chunk.cbegin() + i + size, value.cbegin())) {
 					matches.push_back(i);
 				}
 			}
@@ -86,7 +86,7 @@ void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size
 			offsets_t stillMatches;
 			for (auto offsetIt = blockIt->matches.cbegin(); offsetIt != blockIt->matches.cend(); ++offsetIt) {
 				assert(*offsetIt + size <= chunk.size());
-				if (value_t(chunk.begin() + *offsetIt, chunk.begin() + *offsetIt + size) == value) {
+        if (std::equal(chunk.cbegin() + *offsetIt, chunk.cbegin() + *offsetIt + size, value.cbegin())) {
 					stillMatches.push_back(*offsetIt);
 				}
 			}
