@@ -15,7 +15,7 @@ using namespace std;
 typedef std::vector<unsigned char> chunk_t;
 
 // Declarations
-void write_address(phandle_t process, CheatEngine::address_t address, CheatEngine::value_t value, CheatEngine::value_size_t size);
+void write_address(phandle_t process, address_t address, CheatEngine::value_t value, CheatEngine::value_size_t size);
 DWORD get_chunk_size_to_read();
 bool can_modify_page(const MEMORY_BASIC_INFORMATION& page);
 
@@ -42,7 +42,7 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
 	MEMORY_BASIC_INFORMATION info;
 	for (address_t address = nullptr;
 		VirtualQueryEx(m_process, address, &info, sizeof(info)) == sizeof(info);
-		address = static_cast<address_t>(info.BaseAddress) + info.RegionSize) {
+		address = static_cast<unsigned char*>(info.BaseAddress) + info.RegionSize) {
 		if (can_modify_page(info)) {
 			chunk_t chunk(info.RegionSize);
 			if (!ReadProcessMemory(m_process, address, chunk.data(), info.RegionSize, nullptr)) {
@@ -50,67 +50,64 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
 			}
 			assert(!chunk.empty());
 
+			offsets_t matches;
 			for (chunk_t::size_type i = 0; i <= chunk.size() - size; ++i) {
-				address_t chunkPtr = chunk.data() + i;
-				address_t valuePtr = value;
-
-				if (equal(chunkPtr, chunkPtr + size, valuePtr)) {
-					address_t matchingAddress = static_cast<address_t>(info.BaseAddress) + i;
-
-					m_addresses.insert(make_pair(address, matchingAddress));
+				if (value_t(chunk.begin() + i, chunk.begin() + i + size) == value) {
+					matches.push_back(i);
 				}
+			}
+			if (!matches.empty()) {
+				MemoryBlock block;
+				block.matches = matches;
+				block.baseAddress = info.BaseAddress;
+				block.size = info.RegionSize;
+				m_blocks.push_back(block);
 			}
 		}
 	}
 }
 
 void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size) {
-	assert(!m_addresses.empty());
+	assert(!m_blocks.empty());
 
-	addresses_t keptAddresses;
-
-	// Iterate over all the memory pages
-	for (auto currentPageIt = begin(m_addresses);
-		currentPageIt != end(m_addresses);) {
-		// get the range of addresses where we found a value (within that page)
-		const auto pageRange = m_addresses.equal_range(currentPageIt->first);
-
-		// read that memory page again (if we can still read it)
+	for (auto blockIt = begin(m_blocks); blockIt != end(m_blocks);) {
 		MEMORY_BASIC_INFORMATION info;
-		const auto len = VirtualQueryEx(m_process, currentPageIt->first, &info, sizeof(info));
+		const auto len = VirtualQueryEx(m_process, blockIt->baseAddress, &info, sizeof(info));
 		assert(len == sizeof(info));
+
 		if (can_modify_page(info)) {
-			// read the chunk of memory where we had addresses before
-			chunk_t chunk(info.RegionSize);
-			if (!ReadProcessMemory(m_process, currentPageIt->first, chunk.data(), info.RegionSize, nullptr)) {
+			chunk_t chunk(blockIt->size);
+			if (!ReadProcessMemory(m_process, blockIt->baseAddress, chunk.data(), blockIt->size, nullptr)) {
 				cerr << "couldn't properly read process memory. " << GetLastError() << endl;
 			}
 			assert(!chunk.empty());
 
-			// go through all the addresses in the memory page
-			for (auto addrIt = pageRange.first; addrIt != pageRange.second; ++addrIt) {
-				assert(addrIt->second >= addrIt->first);
-				const size_t index = addrIt->second - addrIt->first;
-				assert(index + size <= chunk.size());
-				const auto addrInChunk = chunk.data() + index;
-
-				// if the address still matches our value, keep it.
-				if (equal(addrInChunk, addrInChunk + size, value)) {
-					keptAddresses.insert(make_pair(addrIt->first, addrIt->second));
+			// from the offsets that matched before within that page, only keep the ones that still match
+			offsets_t stillMatches;
+			for (auto offsetIt = blockIt->matches.cbegin(); offsetIt != blockIt->matches.cend(); ++offsetIt) {
+				assert(*offsetIt + size <= chunk.size());
+				if (value_t(chunk.begin() + *offsetIt, chunk.begin() + *offsetIt + size) == value) {
+					stillMatches.push_back(*offsetIt);
 				}
 			}
+			blockIt->matches = stillMatches;
+
+			// memory page no longer has matching addresses: drop it
+			if (blockIt->matches.empty()) {
+				blockIt = m_blocks.erase(blockIt);
+			}
+			else {
+				++blockIt;
+			}
 		}
-
-		currentPageIt = pageRange.second;
 	}
-
-	// keep the new addresses
-	m_addresses = keptAddresses;
 }
 
 void CheatEngine::modifyMatchingAddresses(const value_t& value, value_size_t size) const {
-	for_each(begin(m_addresses), end(m_addresses), [&](std::pair<address_t, address_t> pageAddress) {
-		write_address(m_process, pageAddress.second, value, size);
+  for_each(begin(m_blocks), end(m_blocks), [&](const MemoryBlock& block) {
+    for_each(begin(block.matches), end(block.matches), [&](const offset_t offset) {
+      write_address(m_process, static_cast<unsigned char*>(block.baseAddress) + offset, value, size);
+    });
 	});
 }
 
@@ -135,8 +132,8 @@ vector<pid_t> CheatEngine::getProcessesWithName(const std::string& name) {
 	return processes;
 }
 
-void write_address(phandle_t process, CheatEngine::address_t address, CheatEngine::value_t value, CheatEngine::value_size_t size) {
-	if (!WriteProcessMemory(process, address, value, size, nullptr))
+void write_address(phandle_t process, address_t address, CheatEngine::value_t value, CheatEngine::value_size_t size) {
+	if (!WriteProcessMemory(process, address, value.data(), size, nullptr))
 		cerr << "error while trying to write on the other process" << endl;
 }
 

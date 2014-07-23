@@ -1,27 +1,28 @@
 #ifndef CHEAT_ENGINE_H
 #define CHEAT_ENGINE_H
 
+#include "MemoryBlock.h"
 #include "platform.h"
 
 #include <string>
-#include <unordered_map>
+#include <list>
+#include <vector>
 
 class CheatEngine
 {
 public:
 	typedef unsigned char value_size_t;
-	typedef unsigned char* value_t;
+	typedef std::vector<unsigned char> value_t;
 
-	typedef unsigned char* address_t;
-	typedef std::unordered_multimap<address_t, address_t> addresses_t;
+	typedef std::list<MemoryBlock> blocks_t;
 
-	const addresses_t& getMatchingAddresses() const { return m_addresses; }
+	const blocks_t& getMatchingBlocks() const { return m_blocks; }
 
 	CheatEngine(pid_t process);
 	~CheatEngine();
 
 protected:
-	addresses_t m_addresses;
+	blocks_t m_blocks;
 	phandle_t m_process;
 
 
