@@ -1,6 +1,10 @@
 #include "../../CheatEngine.h"
 
 #include <dirent.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ptrace.h>
+#include <sys/wait.h>
 
 #include <iostream>
 #include <string>
@@ -11,7 +15,7 @@
 using namespace std;
 
 // extracts the pid and name of the given process directory entry
-// within /proc. If we fail to extract the information, throws
+// within /proc. If we fail to extract the information, throw
 // an invalid_argument exception.
 pair<pid_t, string> get_process_pid_name(const dirent* procEntry);
 
@@ -39,21 +43,45 @@ vector<pid_t> CheatEngine::getProcessesWithName(const std::string& name) {
                 if (name == pname) {
                     processes.push_back(pid);
                 }
-
-            } catch (invalid_argument) {}
+            } catch (invalid_argument) {} // could not read? ignore error
         }
         closedir(dir);
     } else {
-        cerr << "Failed to open /proc/ to iterate over running processes." << endl;
+        cerr << "Failed to open /proc to iterate over running processes." << endl;
     }
     return processes;
 }
 
 phandle_t CheatEngine::openProcess(pid_t id) const {
-    return phandle_t();
+    stringstream memFilename;
+    memFilename << "/proc/" << id << "/mem";
+
+    phandle_t memoryFile = open(memFilename.str().c_str(), O_RDONLY);
+    if (memoryFile < 0) {
+        cerr << "Failed to open process memory file." << endl;
+        exit(1);
+    }
+    if (ptrace(PTRACE_ATTACH, id, nullptr, nullptr) < 0) {
+        cerr << "Failed to ptrace attach to process." << endl;
+        exit(1);
+    }
+    if (waitpid(id, NULL, 0) < 0) {
+        cerr << "Failed to waitpid on process." << endl;
+        exit(1);
+    }
+
+    return memoryFile;
 }
 
-void CheatEngine::closeProcess(phandle_t handle) const {
+void CheatEngine::closeProcess(pid_t id, phandle_t handle) const {
+    if (ptrace(PTRACE_DETACH, id, nullptr, nullptr) < 0) {
+        cerr << "Failed to ptrace detach to process." << endl;
+        exit(1);
+    }
+    if (close(handle) < 0) {
+        cerr << "Failed to close process memory file." << endl;
+        exit(1);
+    }
 }
 
 pair<pid_t, string> get_process_pid_name(const dirent* procEntry) {

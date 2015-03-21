@@ -32,7 +32,7 @@ phandle_t CheatEngine::openProcess(pid_t id) const {
 	return handle;
 }
 
-void CheatEngine::closeProcess(phandle_t handle) const {
+void CheatEngine::closeProcess(pid_t id, phandle_t handle) const {
 	CloseHandle(handle);
 }
 

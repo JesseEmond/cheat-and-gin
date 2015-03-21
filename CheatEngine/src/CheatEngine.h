@@ -24,6 +24,7 @@ public:
 protected:
 	blocks_t m_blocks;
 	phandle_t m_process;
+        pid_t m_processId;
 
 
 
@@ -37,7 +38,7 @@ public:
 
 private:
 	phandle_t openProcess(pid_t id) const;
-	void closeProcess(phandle_t handle) const;
+	void closeProcess(pid_t id, phandle_t handle) const;
 };
 
 #endif
