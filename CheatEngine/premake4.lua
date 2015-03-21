@@ -10,4 +10,6 @@ project "CheatEngine"
 	-- platform-specific files
 	if os.is("windows") then
 		files { "./src/platform/win32/*.cpp" }
+        elseif os.is("linux") then
+                files { "./src/platform/linux/*.cpp" }
 	end

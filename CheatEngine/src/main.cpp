@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include <iterator>
+#include <algorithm>
 using namespace std;
 
 pid_t ask_for_process();

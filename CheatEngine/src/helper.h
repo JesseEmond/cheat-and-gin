@@ -18,13 +18,13 @@ template <class T, class Pred>
 T ask_for(const std::string& message, const std::string& error, Pred verification) {
 	T t;
 	std::cout << message << ": ";
-	while (!(cin >> t) || !verification(t)) {
-		std::cerr << error << std::endl;
-		std::cout << message << ": ";
+	while (!(std::cin >> t) || !verification(t)) {
+          std::cerr << error << std::endl;
+          std::cout << message << ": ";
 
-		if (!cin) {
-			cin.clear();
-			cin.ignore(cin.rdbuf()->in_avail());
+		if (!std::cin) {
+                  std::cin.clear();
+                  std::cin.ignore(std::cin.rdbuf()->in_avail());
 		}
 	}
 
