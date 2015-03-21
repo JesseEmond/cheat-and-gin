@@ -8,10 +8,10 @@
 #include <iterator>
 
 CheatEngine::CheatEngine(pid_t process)
-        : m_processId(process) {
-	m_process = openProcess(process);
-}
+  : m_processId(process) {
+    m_process = openProcess(process);
+  }
 
 CheatEngine::~CheatEngine() {
-	closeProcess(m_processId, m_process);
+  closeProcess(m_processId, m_process);
 }

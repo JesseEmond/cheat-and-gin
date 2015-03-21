@@ -10,9 +10,9 @@ typedef std::vector<offset_t> offsets_t;
 
 struct MemoryBlock
 {
-	address_t baseAddress;
-	block_size_t size;
-	offsets_t matches;
+  address_t baseAddress;
+  block_size_t size;
+  offsets_t matches;
 };
 
 #endif

@@ -5,14 +5,14 @@
 #include <cstddef>
 
 namespace ValueTypes {
-	enum ValueTypes {
-		byte_t = 0,
-		word_t,
-		dword_t,
-		qword_t,
-		float_t,
-		double_t
-	};
+  enum ValueTypes {
+    byte_t = 0,
+    word_t,
+    dword_t,
+    qword_t,
+    float_t,
+    double_t
+  };
 }
 typedef ValueTypes::ValueTypes ValueType;
 
