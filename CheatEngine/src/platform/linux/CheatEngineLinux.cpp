@@ -11,6 +11,8 @@
 #include <tuple>
 #include <fstream>
 #include <sstream>
+#include <regex>
+#include <cassert>
 
 using namespace std;
 
@@ -18,9 +20,36 @@ using namespace std;
 // within /proc. If we fail to extract the information, throw
 // an invalid_argument exception.
 pair<pid_t, string> get_process_pid_name(const dirent* procEntry);
+// parses a line from a /proc/[pid]/maps file to extract the start/end
+// addresses and return whether the parsing was a success AND that the
+// memory page is one that we care about (i.e. we can read/write it and
+// it is private memory).
+bool parse_memory_map_line(const string& line, pair<long,long>& addresses);
 
 
 void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size) {
+  stringstream memoryMapFilename;
+  memoryMapFilename << "/proc/" << m_processId << "/maps";
+  ifstream memMap(memoryMapFilename.str());
+
+  if (!memMap) {
+    cerr << "Failed to open memory map file for pid " << m_processId << endl;
+    return;
+  }
+
+  string line;
+  while (getline(memMap, line)) {
+    pair<long,long> page;
+    if (parse_memory_map_line(line, page)) {
+      assert(page.second > page.first);
+      MemoryBlock block;
+      block.baseAddress = address_t(0) + page.first;
+      block.size = page.second - page.first;
+
+      // TODO go through the block and extract matches
+
+    }
+  }
 }
 
 void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size) {
@@ -100,4 +129,44 @@ pair<pid_t, string> get_process_pid_name(const dirent* procEntry) {
   string name;
   procNameFile >> name;
   return make_pair(pid, name);
+}
+
+bool parse_memory_map_line(const string& line, pair<long,long>& addresses) {
+  static regex pattern("([0-9A-Fa-f]+)-([0-9A-Fa-f]+) ([-r])([-w])[-x]([sp]).*");
+
+  smatch matches;
+  regex_match(line, matches, pattern);
+
+  if (matches.size() != 6) {
+    cout << matches.size() << endl;
+    copy(begin(matches), end(matches), ostream_iterator<string>(cout));
+    cerr << "Could not properly parse line in maps file. Line: " << line << endl;
+    return false;
+  }
+
+  auto start = matches[1];
+  auto end = matches[2];
+  auto read = matches[3];
+  auto write = matches[4];
+  auto privacy = matches[5];
+
+  if (read    == "r" &&
+      write   == "w" &&
+      privacy == "p") {
+    try {
+      auto startAddress = stol(start, nullptr, 16);
+      auto endAddress   = stol(end,   nullptr, 16);
+
+      addresses.first  = startAddress;
+      addresses.second = endAddress;
+
+      return true;
+    } catch (invalid_argument) {
+      cerr << "Failed to parse start or end date of mmap: " << start
+        << " " << end << endl;
+      return false;
+    }
+  }
+
+  return false;
 }

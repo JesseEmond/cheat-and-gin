@@ -3,7 +3,7 @@
 
 #include <vector>
 
-typedef void* address_t;
+typedef char* address_t;
 typedef unsigned int block_size_t;
 typedef unsigned int offset_t;
 typedef std::vector<offset_t> offsets_t;
