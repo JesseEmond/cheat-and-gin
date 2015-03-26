@@ -25,15 +25,26 @@ pair<pid_t, string> get_process_pid_name(const dirent* procEntry);
 // memory page is one that we care about (i.e. we can read/write it and
 // it is private memory).
 bool parse_memory_map_line(const string& line, pair<long,long>& addresses);
-// reads a page of memory starting at the given address offset with a
+// reads a process chunk of memory starting at the given address offset with a
 // given size.
-bytes_t read_memory_page(phandle_t process, pid_t pid, long start, size_t size);
+bytes_t read_memory_chunk(phandle_t process, pid_t pid, long start, size_t size);
 // extracts the matching memory offsets with a given value within a block of memory.
 offsets_t extract_matches(const bytes_t& memory, const bytes_t& searched);
+// removes the memory offsets that no longer fit a given value.
+void remove_matches_with_different_value(phandle_t process, pid_t pid,
+  MemoryBlock& block, const bytes_t& value);
+
+//TODO: custom object for that lock for idiomatic RAII
+// locks the execution of the target process.
+void lock_process(pid_t pid);
+// unlocks the execution of the target process.
+void unlock_process(pid_t pid);
 
 
 
 void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size) {
+  lock_process(m_processId);
+
   stringstream memoryMapFilename;
   memoryMapFilename << "/proc/" << m_processId << "/maps";
   ifstream memMap(memoryMapFilename.str());
@@ -52,7 +63,7 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
       block.baseAddress = address_t(0) + page.first;
       block.size = page.second - page.first;
 
-      auto memory = read_memory_page(m_process, m_processId, page.first, block.size);
+      auto memory = read_memory_chunk(m_process, m_processId, page.first, block.size);
       block.matches = extract_matches(memory, value);
 
       if (!block.matches.empty()) {
@@ -60,9 +71,24 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
       }
     }
   }
+
+  unlock_process(m_processId);
 }
 
 void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size) {
+  lock_process(m_processId);
+
+  for_each(m_blocks.begin(), m_blocks.end(), [&](MemoryBlock& block) {
+    remove_matches_with_different_value(m_process, m_processId, block, value);
+  });
+
+  // clean empty blocks
+  m_blocks.erase(remove_if(m_blocks.begin(), m_blocks.end(), [](const MemoryBlock& block) {
+      return block.matches.empty();
+    }),
+    m_blocks.cend());
+
+  unlock_process(m_processId);
 }
 
 void CheatEngine::modifyMatchingAddresses(const value_t& value, value_size_t size) const {
@@ -100,23 +126,11 @@ phandle_t CheatEngine::openProcess(pid_t id) const {
     cerr << "Failed to open process memory file. Do you have the required rights?" << endl;
     exit(1);
   }
-  if (ptrace(PTRACE_ATTACH, id, nullptr, nullptr) < 0) {
-    cerr << "Failed to ptrace attach to process." << endl;
-    exit(1);
-  }
-  if (waitpid(id, NULL, 0) < 0) {
-    cerr << "Failed to waitpid on process." << endl;
-    exit(1);
-  }
 
   return memoryFile;
 }
 
 void CheatEngine::closeProcess(pid_t id, phandle_t handle) const {
-  if (ptrace(PTRACE_DETACH, id, nullptr, nullptr) < 0) {
-    cerr << "Failed to ptrace detach to process." << endl;
-    exit(1);
-  }
   if (close(handle) < 0) {
     cerr << "Failed to close process memory file." << endl;
     exit(1);
@@ -142,7 +156,7 @@ pair<pid_t, string> get_process_pid_name(const dirent* procEntry) {
 }
 
 bool parse_memory_map_line(const string& line, pair<long,long>& addresses) {
-  static regex pattern("([0-9A-Fa-f]+)-([0-9A-Fa-f]+) ([-r])([-w])[-x]([sp]).*");
+  static const regex pattern("([0-9A-Fa-f]+)-([0-9A-Fa-f]+) ([-r])([-w])[-x]([sp]).*");
 
   smatch matches;
   regex_match(line, matches, pattern);
@@ -179,7 +193,7 @@ bool parse_memory_map_line(const string& line, pair<long,long>& addresses) {
   return false;
 }
 
-bytes_t read_memory_page(phandle_t process, pid_t pid, long start, size_t size) {
+bytes_t read_memory_chunk(phandle_t process, pid_t pid, long start, size_t size) {
   bytes_t memory(size);
   auto offset = lseek(process, start, SEEK_SET);
 
@@ -207,4 +221,33 @@ offsets_t extract_matches(const bytes_t& memory, const bytes_t& searched) {
   }
 
   return offsets;
+}
+
+void remove_matches_with_different_value(phandle_t process, pid_t pid,
+  MemoryBlock& block, const bytes_t& value) {
+  auto& matches = block.matches;
+  matches.erase(remove_if(matches.begin(), matches.end(), [&](offset_t offset) {
+      const auto addr = (block.baseAddress - address_t(0)) + offset;
+      const auto memory = read_memory_chunk(process, pid, addr, value.size());
+      return memory != value;
+    }),
+    matches.cend());
+}
+
+void lock_process(const pid_t pid) {
+  if (ptrace(PTRACE_ATTACH, pid, nullptr, nullptr) < 0) {
+    cerr << "Failed to ptrace attach to process." << endl;
+    exit(1);
+  }
+  if (waitpid(pid, NULL, 0) < 0) {
+    cerr << "Failed to waitpid on process." << endl;
+    exit(1);
+  }
+}
+
+void unlock_process(const pid_t pid) {
+  if (ptrace(PTRACE_DETACH, pid, nullptr, nullptr) < 0) {
+    cerr << "Failed to ptrace detach to process." << endl;
+    exit(1);
+  }
 }
