@@ -25,6 +25,12 @@ pair<pid_t, string> get_process_pid_name(const dirent* procEntry);
 // memory page is one that we care about (i.e. we can read/write it and
 // it is private memory).
 bool parse_memory_map_line(const string& line, pair<long,long>& addresses);
+// reads a page of memory starting at the given address offset with a
+// given size.
+bytes_t read_memory_page(phandle_t process, pid_t pid, long start, size_t size);
+// extracts the matching memory offsets with a given value within a block of memory.
+offsets_t extract_matches(const bytes_t& memory, const bytes_t& searched);
+
 
 
 void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size) {
@@ -46,8 +52,12 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
       block.baseAddress = address_t(0) + page.first;
       block.size = page.second - page.first;
 
-      // TODO go through the block and extract matches
+      auto memory = read_memory_page(m_process, m_processId, page.first, block.size);
+      block.matches = extract_matches(memory, value);
 
+      if (!block.matches.empty()) {
+        m_blocks.push_back(block);
+      }
     }
   }
 }
@@ -87,7 +97,7 @@ phandle_t CheatEngine::openProcess(pid_t id) const {
 
   phandle_t memoryFile = open(memFilename.str().c_str(), O_RDONLY);
   if (memoryFile < 0) {
-    cerr << "Failed to open process memory file." << endl;
+    cerr << "Failed to open process memory file. Do you have the required rights?" << endl;
     exit(1);
   }
   if (ptrace(PTRACE_ATTACH, id, nullptr, nullptr) < 0) {
@@ -138,8 +148,6 @@ bool parse_memory_map_line(const string& line, pair<long,long>& addresses) {
   regex_match(line, matches, pattern);
 
   if (matches.size() != 6) {
-    cout << matches.size() << endl;
-    copy(begin(matches), end(matches), ostream_iterator<string>(cout));
     cerr << "Could not properly parse line in maps file. Line: " << line << endl;
     return false;
   }
@@ -169,4 +177,34 @@ bool parse_memory_map_line(const string& line, pair<long,long>& addresses) {
   }
 
   return false;
+}
+
+bytes_t read_memory_page(phandle_t process, pid_t pid, long start, size_t size) {
+  bytes_t memory(size);
+  auto offset = lseek(process, start, SEEK_SET);
+
+  if (offset != start) {
+    cerr << "Failed to seek in memory file for process " << pid << endl;
+    return bytes_t();
+  }
+
+  if (read(process, memory.data(), size) < 0) {
+    cerr << "Error while reading memory from memory file for process "
+         << pid << endl;
+    return bytes_t();
+  }
+
+  return memory;
+}
+
+offsets_t extract_matches(const bytes_t& memory, const bytes_t& searched) {
+  offsets_t offsets;
+
+  for (auto it = memory.cbegin();
+       (it = search(it, memory.cend(), searched.cbegin(), searched.cend())) != memory.cend();
+       ++it) {
+    offsets.push_back(distance(memory.cbegin(), it));
+  }
+
+  return offsets;
 }

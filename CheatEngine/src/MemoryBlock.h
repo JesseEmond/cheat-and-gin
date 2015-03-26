@@ -7,6 +7,8 @@ typedef char* address_t;
 typedef unsigned int block_size_t;
 typedef unsigned int offset_t;
 typedef std::vector<offset_t> offsets_t;
+typedef unsigned char byte_t;
+typedef std::vector<byte_t> bytes_t;
 
 struct MemoryBlock
 {
