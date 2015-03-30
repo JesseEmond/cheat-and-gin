@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
+#include <sys/uio.h>
 
 #include <iostream>
 #include <string>
@@ -27,7 +28,9 @@ pair<pid_t, string> get_process_pid_name(const dirent* procEntry);
 bool parse_memory_map_line(const string& line, pair<long,long>& addresses);
 // reads a process chunk of memory starting at the given address offset with a
 // given size.
-bytes_t read_memory_chunk(phandle_t process, pid_t pid, long start, size_t size);
+bytes_t read_memory_chunk(phandle_t process, long start, size_t size);
+// writes the given bytes to the specified process memory at the specified offset.
+void write_memory(pid_t pid, address_t addr, const bytes_t& memory);
 // extracts the matching memory offsets with a given value within a block of memory.
 offsets_t extract_matches(const bytes_t& memory, const bytes_t& searched);
 // removes the memory offsets that no longer fit a given value.
@@ -39,7 +42,6 @@ void remove_matches_with_different_value(phandle_t process, pid_t pid,
 void lock_process(pid_t pid);
 // unlocks the execution of the target process.
 void unlock_process(pid_t pid);
-
 
 
 void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size) {
@@ -63,7 +65,7 @@ void CheatEngine::addAddressesWithValue(const value_t& value, value_size_t size)
       block.baseAddress = address_t(0) + page.first;
       block.size = page.second - page.first;
 
-      auto memory = read_memory_chunk(m_process, m_processId, page.first, block.size);
+      auto memory = read_memory_chunk(m_process, page.first, block.size);
       block.matches = extract_matches(memory, value);
 
       if (!block.matches.empty()) {
@@ -92,6 +94,16 @@ void CheatEngine::keepAddressesWithValue(const value_t& value, value_size_t size
 }
 
 void CheatEngine::modifyMatchingAddresses(const value_t& value, value_size_t size) const {
+  lock_process(m_processId);
+
+  for_each(m_blocks.cbegin(), m_blocks.cend(), [&] (const MemoryBlock& block) {
+    for_each(block.matches.cbegin(), block.matches.cend(), [&](const offset_t& offset) {
+      const auto addr = block.baseAddress + offset;
+      write_memory(m_processId, addr, value);
+    });
+  });
+
+  unlock_process(m_processId);
 }
 
 vector<pid_t> CheatEngine::getProcessesWithName(const std::string& name) {
@@ -108,7 +120,7 @@ vector<pid_t> CheatEngine::getProcessesWithName(const std::string& name) {
         if (name == pname) {
           processes.push_back(pid);
         }
-      } catch (invalid_argument) {} // could not read? ignore error
+      } catch (invalid_argument) {} // could not read? keep going anyway
     }
     closedir(dir);
   } else {
@@ -193,22 +205,36 @@ bool parse_memory_map_line(const string& line, pair<long,long>& addresses) {
   return false;
 }
 
-bytes_t read_memory_chunk(phandle_t process, pid_t pid, long start, size_t size) {
+bytes_t read_memory_chunk(phandle_t process, long start, size_t size) {
   bytes_t memory(size);
   auto offset = lseek(process, start, SEEK_SET);
 
   if (offset != start) {
-    cerr << "Failed to seek in memory file for process " << pid << endl;
+    cerr << "Failed to seek in memory file of process." << endl;
     return bytes_t();
   }
 
   if (read(process, memory.data(), size) < 0) {
-    cerr << "Error while reading memory from memory file for process "
-         << pid << endl;
+    cerr << "Error while reading memory from memory file of process." << endl;
     return bytes_t();
   }
 
   return memory;
+}
+
+void write_memory(pid_t pid, address_t addr, const bytes_t& memory) {
+  // horrible cast because iovec takes non-const char* (even though we call
+  // process_vm_writev, which doesn't modify our local memory).
+  void* localAddress = (void*)(memory.data()); // please forgive me
+  const iovec local = { localAddress, memory.size() };
+  const iovec remote = { addr, memory.size() };
+
+  const auto written = process_vm_writev(pid, &local, 1, &remote, 1, 0);
+
+  if (written < 0 ||
+      written != memory.size()) {
+    cerr << "Failed to writed to target process." << endl;
+  }
 }
 
 offsets_t extract_matches(const bytes_t& memory, const bytes_t& searched) {
@@ -228,7 +254,7 @@ void remove_matches_with_different_value(phandle_t process, pid_t pid,
   auto& matches = block.matches;
   matches.erase(remove_if(matches.begin(), matches.end(), [&](offset_t offset) {
       const auto addr = (block.baseAddress - address_t(0)) + offset;
-      const auto memory = read_memory_chunk(process, pid, addr, value.size());
+      const auto memory = read_memory_chunk(process, addr, value.size());
       return memory != value;
     }),
     matches.cend());
