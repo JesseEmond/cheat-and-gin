@@ -120,7 +120,9 @@ vector<pid_t> CheatEngine::getProcessesWithName(const std::string& name) {
         if (name == pname) {
           processes.push_back(pid);
         }
-      } catch (invalid_argument) {} // could not read? keep going anyway
+      } catch (invalid_argument) {
+        // just ignore. Error messages should be shown already for parsing errors.
+      }
     }
     closedir(dir);
   } else {
@@ -151,7 +153,7 @@ void CheatEngine::closeProcess(pid_t id, phandle_t handle) const {
 
 pair<pid_t, string> get_process_pid_name(const dirent* procEntry) {
   string pidStr(procEntry->d_name);
-  pid_t pid = stol(pidStr); // let it throw invalid_argument if fails
+  pid_t pid = stol(pidStr); // let it throw invalid_argument if fails, will be caught
 
   stringstream procNameFilename;
   procNameFilename << "/proc/" << pid << "/comm";
