@@ -42,10 +42,11 @@ Note that we're playing with another process' memory, so we need extra rights. I
 running with `sudo` here:
 ```
 > sudo ./CheatEngine/bin/CheatEngine
-process name:
+process name: FakeGame
 ```
 
-We enter `FakeGame` and we are then prompted to know the size of the variable:
+We enter `FakeGame` and we are then prompted to know the size of the variable that we want to modify:
+```
 1 - byte(1)
 2 - word(2)
 3 - dword(4)
@@ -83,12 +84,12 @@ We can then enter the updated value (`99`):
 dword value: 99
 ```
 
-We can then stop searching:
+And stop searching:
 ```
 Keep searching?: 0
 ```
 
-And set a new value:
+Set a new value:
 ```
 dword value: 424242
 Value(s) modified.
