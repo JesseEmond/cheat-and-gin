@@ -1,10 +1,13 @@
 # Cheat Engine (Memory Scanner)
+
+[![Build Status](https://travis-ci.org/JesseEmond/cheat-and-gin.svg?branch=master)](https://travis-ci.org/JesseEmond/cheat-and-gin)
+
 `cheat-and-gin` is a program that you can use to modify the memory of another process while it is running.
 
 Such a program is popular for hacking games that are running locally, but I build one to get familiar
 with the particularities of modifying a program's memory under Window and Linux for learning purposes.
 
-## Compiling
+## Building
 I use `premake4` for build configuration. You can find a download link on [premake's website](https://premake.github.io).
 
 ### Windows
@@ -100,4 +103,9 @@ Finally, we can admire the results of our cheat by updating the `FakeGame`:
 health(4): 424241 - 0x7ffd3d5b7c5c
 mana(4): 96 - 0x7ffd3d5b7c58
 (...)
+```
+
+## Running Tests
+```sh
+./CheatEngine/tests/bin/Tests
 ```

@@ -13,3 +13,5 @@ project "CheatEngine"
         elseif os.is("linux") then
                 files { "./src/platform/linux/*.cpp" }
 	end
+
+        include "tests"
