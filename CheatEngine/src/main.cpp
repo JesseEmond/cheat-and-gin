@@ -1,6 +1,7 @@
 #include "CheatEngine.h"
 #include "helper.h"
 #include "ValueType.h"
+#include "OS.h"
 
 #include <iostream>
 #include <vector>
@@ -9,18 +10,19 @@
 #include <algorithm>
 using namespace std;
 
-pid_t ask_for_process();
+pid_t ask_for_process(const OS& os);
 pid_t choose_process(const vector<pid_t>& processes);
 void pause();
 
 int main() {
-  pid_t process = ask_for_process();
-  CheatEngine engine(process);
+  auto os = OS::getOS();
+  const auto pid = ask_for_process(*os);
+  auto process = os->open(pid);
+  CheatEngine engine{*process};
 
-  ValueType type = ask_for_value_type();
-  size_t size = value_type_size(type);
+  const auto type = ask_for_value_type();
   auto value = ask_for_value(type);
-  engine.addAddressesWithValue(value, size);
+  engine.search(value);
 
   bool done = engine.getMatchingBlocks().empty();
 
@@ -30,7 +32,7 @@ int main() {
 
     if (!done) {
       value = ask_for_value(type);
-      engine.keepAddressesWithValue(value, size);
+      engine.narrowDown(value);
     }
   }
 
@@ -38,7 +40,7 @@ int main() {
     cout << "What value should the new address(es) have?" << endl;
     value = ask_for_value(type);
 
-    engine.modifyMatchingAddresses(value, size);
+    engine.modify(value);
     cout << "Value(s) modified." << endl;
   } else {
     cout << "No address(es) fit the given value(s)." << endl;
@@ -50,25 +52,20 @@ int main() {
 
 
 
-pid_t ask_for_process() {
+pid_t ask_for_process(const OS& os) {
   vector<pid_t> processes;
 
   do {
     string name = ask_for<string>("process name", "invalid process name");
 
-    processes = CheatEngine::getProcessesWithName(name);
+    processes = os.getProcesses(name);
 
     if (processes.empty())
       cerr << "no process found for the given name." << endl;
   } while (processes.empty());
+
   assert(!processes.empty());
-
-  pid_t process = processes.front();
-
-  if (processes.size() > 1)
-    process = choose_process(processes);
-
-  return process;
+  return processes.size() > 1 ? choose_process(processes) : processes.front();
 }
 
 pid_t choose_process(const vector<pid_t>& processes) {

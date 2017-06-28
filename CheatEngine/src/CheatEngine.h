@@ -1,44 +1,42 @@
 #ifndef CHEAT_ENGINE_H
 #define CHEAT_ENGINE_H
 
+#include "Process.h"
 #include "MemoryBlock.h"
 #include "platform.h"
 
 #include <string>
-#include <list>
 #include <vector>
+
+
+typedef std::vector<MemoryBlock> blocks_t;
+
 
 class CheatEngine
 {
-  public:
-    typedef unsigned char value_size_t;
-    typedef std::vector<unsigned char> value_t;
+  Process& process;
+  blocks_t blocks;
 
-    typedef std::list<MemoryBlock> blocks_t;
+public:
+  const blocks_t& getMatchingBlocks() const { return blocks; }
 
-    const blocks_t& getMatchingBlocks() const { return m_blocks; }
+  CheatEngine(Process& process) : process{process}, blocks{} {}
 
-    CheatEngine(pid_t process);
-    ~CheatEngine();
+  /**
+   * Search the process' memory to find occurences of a certain value.
+   */
+  void search(const memory_t& value);
 
-  protected:
-    blocks_t m_blocks;
-    phandle_t m_process;
-    pid_t m_processId;
+  /**
+   * Narrow down the address matches based on which ones have the specified
+   * value.
+   */
+  void narrowDown(const memory_t& value);
 
-
-
-    // Platform-specific:
-  public:
-    static std::vector<pid_t> getProcessesWithName(const std::string& name);
-
-    void addAddressesWithValue(const value_t& value, value_size_t size);
-    void keepAddressesWithValue(const value_t& value, value_size_t size);
-    void modifyMatchingAddresses(const value_t& value, value_size_t size) const;
-
-  private:
-    phandle_t openProcess(pid_t id) const;
-    void closeProcess(pid_t id, phandle_t handle) const;
+  /**
+   * Modify the matching addresses with the given value.
+   */
+  void modify(const memory_t& value);
 };
 
 #endif

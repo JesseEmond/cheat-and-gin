@@ -9,9 +9,9 @@ project "CheatEngine"
 
 	-- platform-specific files
 	if os.is("windows") then
-		files { "./src/platform/win32/*.cpp" }
+                files { "./src/platform/win32/*.cpp", "./src/platform/win32/*.h" }
         elseif os.is("linux") then
-                files { "./src/platform/linux/*.cpp" }
+                files { "./src/platform/linux/*.cpp", "./src/platform/linux/*.h" }
 	end
 
         include "tests"
