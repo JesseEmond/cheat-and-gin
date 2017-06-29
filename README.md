@@ -33,7 +33,7 @@ which change every time a newline is entered along with their associated address
 > ./FakeGame/bin/FakeGame
 health(4): 100 - 0x7ffcb173c07c
 mana(4): 100 - 0x7ffcb173c078
-gold(1):  - 0x7ffcb173c077
+gold(1):   - 0x7ffcb173c077
 miles(2): 5 - 0x7ffcb173c074
 rate(4): 0.1 - 0x7ffcb173c070
 science(8): 0.1 - 0x7ffcb173c068
@@ -76,7 +76,7 @@ and keep searching with the updated value. Let's start by updating the game:
 ```
 health(4): 99 - 0x7ffd647d71ac
 mana(4): 98 - 0x7ffd647d71a8
-gold(1):  - 0x7ffd647d71a7
+gold(1): ! - 0x7ffd647d71a7
 miles(2): 15 - 0x7ffd647d71a4
 rate(4): 0.3 - 0x7ffd647d71a0
 science(8): 0.103 - 0x7ffd647d7198

@@ -9,7 +9,7 @@ int main()
 {
   int health = 100;
   int mana = 100;
-  signed char gold = 0;
+  char gold = ' ';
   short miles = 5;
   float rate = .1f;
   double science = .1f;
