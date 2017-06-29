@@ -8,25 +8,28 @@
 /**
  * Search for all the offsets where a value appears in a memory chunk.
  */
-offsets_t extract_matches(const memory_t& haystack, const memory_t& needle);
+offsets_t matching_offsets(const memory_t& haystack, const memory_t& needle);
 
 
-void CheatEngine::search(const memory_t& value) {
+Matches CheatEngine::search(const memory_t& value) {
+  Matches matches;
   const auto pages = process.getCheatablePages();
 
   for (const auto& page : pages) {
     const auto memory = process.read(page);
-    const auto matches = extract_matches(memory, value);
-
-    if (!matches.empty()) {
-      blocks.emplace_back(page, matches);
-    }
+    const auto offsets = matching_offsets(memory, value);
+    matches.add(page, offsets);
   }
+
+  return matches;
 }
 
-void CheatEngine::narrowDown(const memory_t& value) {
-  for (auto& block : blocks) {
-    const auto memory = process.read(block.page);
+Matches CheatEngine::narrowDown(const Matches& matches,
+                                const memory_t& value) {
+  Matches narrowed;
+
+  for (const auto& match : matches.getPageMatches()) {
+    const auto memory = process.read(match.getPage());
 
     const auto is_same_value = [&] (offset_t offset) {
       assert(offset + value.size() <= memory.size());
@@ -34,31 +37,27 @@ void CheatEngine::narrowDown(const memory_t& value) {
                         std::begin(memory) + offset);
     };
 
-    block.matches.erase(
-      std::remove_if(std::begin(block.matches), std::end(block.matches),
-                     [&](offset_t offset) { return !is_same_value(offset); }),
-      std::end(block.matches));
+    offsets_t offsets;
+    std::copy_if(std::begin(match.getOffsets()), std::end(match.getOffsets()),
+                 std::back_inserter(offsets),
+                 is_same_value);
+    narrowed.add(match.getPage(), offsets);
   }
 
-  const auto is_empty_block = [](const MemoryBlock& block) {
-    return block.matches.empty();
-  };
-  blocks.erase(
-    std::remove_if(std::begin(blocks), std::end(blocks), is_empty_block),
-    std::end(blocks));
+  return narrowed;
 }
 
-void CheatEngine::modify(const memory_t& value) {
-  for (const auto& block : blocks) {
-    for (auto offset : block.matches) {
-      const auto address = block.page.start + offset;
+void CheatEngine::modify(const Matches& matches, const memory_t& value) {
+  for (const auto& match : matches.getPageMatches()) {
+    for (auto offset : match.getOffsets()) {
+      const auto address = match.getPage().start + offset;
       process.write(address, value);
     }
   }
 }
 
 
-offsets_t extract_matches(const memory_t& haystack, const memory_t& needle) {
+offsets_t matching_offsets(const memory_t& haystack, const memory_t& needle) {
   offsets_t offsets;
 
   for (auto it = haystack.cbegin();

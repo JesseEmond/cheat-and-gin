@@ -2,41 +2,35 @@
 #define CHEAT_ENGINE_H
 
 #include "Process.h"
-#include "MemoryBlock.h"
+#include "Matches.h"
 #include "platform.h"
 
 #include <string>
 #include <vector>
 
 
-typedef std::vector<MemoryBlock> blocks_t;
-
-
 class CheatEngine
 {
   Process& process;
-  blocks_t blocks;
 
 public:
-  const blocks_t& getMatchingBlocks() const { return blocks; }
-
-  CheatEngine(Process& process) : process{process}, blocks{} {}
+  CheatEngine(Process& process) : process{process} {}
 
   /**
    * Search the process' memory to find occurences of a certain value.
    */
-  void search(const memory_t& value);
+  Matches search(const memory_t& value);
 
   /**
-   * Narrow down the address matches based on which ones have the specified
+   * Narrow down the address matches based on which ones now have the specified
    * value.
    */
-  void narrowDown(const memory_t& value);
+  Matches narrowDown(const Matches& matches, const memory_t& value);
 
   /**
    * Modify the matching addresses with the given value.
    */
-  void modify(const memory_t& value);
+  void modify(const Matches& matches, const memory_t& value);
 };
 
 #endif

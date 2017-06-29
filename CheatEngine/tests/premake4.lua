@@ -7,4 +7,4 @@ project "Tests"
 	files { "../src/*.h", "../src/*.cpp",
                 "../src/platform/linux/*.cpp", "../src/platform/linux/*.h",
                 "./src/*.hpp", "./src/*.cpp" }
-        excludes { "../src/*.cpp" }
+        excludes { "../src/main.cpp" }

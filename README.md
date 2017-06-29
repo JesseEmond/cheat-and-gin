@@ -66,9 +66,9 @@ We are then asked for the current value of the target variable:
 dword value: 100
 ```
 
-We enter the observed `100`. We are told that multiple memory pages hold our value:
+We enter the observed `100`. We are told that multiple addresses hold our value:
 ```
-2 memory pag(es) containing the value.
+10 memory address(es) containing the value.
 Keep searching?: 
 ``` 
 We want to pin down our address, so we'll update our game (`newline` in our `FakeGame` process)

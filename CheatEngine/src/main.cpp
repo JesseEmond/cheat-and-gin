@@ -22,25 +22,27 @@ int main() {
 
   const auto type = ask_for_value_type();
   auto value = ask_for_value(type);
-  engine.search(value);
+  auto matches = engine.search(value);
 
-  bool done = engine.getMatchingBlocks().empty();
+  bool done = matches.totalMatches() == 0;
 
   while (!done) {
-    cout << endl << engine.getMatchingBlocks().size() << " memory pag(es) containing the value." << endl;
+    cout << endl
+         << matches.totalMatches() << " address(es) containing the value."
+         << endl;
     done = !ask_for<bool>("Keep searching?", "invalid boolean");
 
     if (!done) {
       value = ask_for_value(type);
-      engine.narrowDown(value);
+      matches = engine.narrowDown(matches, value);
     }
   }
 
-  if (!engine.getMatchingBlocks().empty()) {
+  if (matches.totalMatches() > 0) {
     cout << "What value should the new address(es) have?" << endl;
     value = ask_for_value(type);
 
-    engine.modify(value);
+    engine.modify(matches, value);
     cout << "Value(s) modified." << endl;
   } else {
     cout << "No address(es) fit the given value(s)." << endl;
