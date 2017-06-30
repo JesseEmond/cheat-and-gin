@@ -4,4 +4,4 @@ project "FakeGame"
 	location "build"
 	targetdir "bin"
 	objdir "obj"
-	files { "./src/*.h", "./src/*.cpp" }
+	files { "src/*.h", "src/*.cpp" }

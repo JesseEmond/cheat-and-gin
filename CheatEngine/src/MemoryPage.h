@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-typedef char* address_t;
+typedef unsigned char* address_t;
 typedef std::size_t size_t;
 
 /**
