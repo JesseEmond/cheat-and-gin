@@ -71,7 +71,7 @@ Value for 32-bit integer: 100
 We enter the observed `100`. We are told that multiple addresses hold our value:
 ```
 10 memory address(es) containing the value.
-Keep searching?: 
+Keep searching? (y/n): y
 ``` 
 We want to pin down our address, so we'll update our game (`newline` in our `FakeGame` process)
 and keep searching with the updated value. Let's start by updating the game:
@@ -91,7 +91,7 @@ Value for 32-bit integer: 99
 
 And stop searching:
 ```
-Keep searching?: 0
+Keep searching? (y/n): n
 ```
 
 Set a new value:
