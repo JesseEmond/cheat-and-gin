@@ -31,7 +31,7 @@ int main() {
     cout << endl
          << matches.totalMatches() << " address(es) containing the value."
          << endl;
-    done = !ask_for<bool>("Keep searching?", "invalid boolean");
+    done = !ask_yes_no("Keep searching?");
 
     if (!done) {
       value = type.ask_value();
