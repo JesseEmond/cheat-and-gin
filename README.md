@@ -45,25 +45,27 @@ Note that we're playing with another process' memory, so we need extra rights. I
 running with `sudo` here:
 ```
 > sudo ./CheatEngine/bin/CheatEngine
-process name: FakeGame
+Process name: FakeGame
 ```
 
 We enter `FakeGame` and we are then prompted to know the size of the variable that we want to modify:
 ```
-1 - byte(1)
-2 - word(2)
-3 - dword(4)
-4 - qword(8)
-5 - float(4)
-6 - double(8)
-value type: 3
+What is the type of the searched value?
+A - unsigned byte
+B - character
+C - 16-bit integer
+D - 32-bit integer
+E - 64-bit integer
+F - float
+G - double
+Value type: D
 ```
 
-Say that we want to modify the `health` (`4` bytes), we enter the choice of `dword`.
+Say that we want to modify the `health` (`4` bytes), we enter the choice of `32-bit integer`.
 
 We are then asked for the current value of the target variable:
 ```
-dword value: 100
+Value for 32-bit integer: 100
 ```
 
 We enter the observed `100`. We are told that multiple addresses hold our value:
@@ -84,7 +86,7 @@ science(8): 0.103 - 0x7ffd647d7198
 
 We can then enter the updated value (`99`):
 ```
-dword value: 99
+Value for 32-bit integer: 99
 ```
 
 And stop searching:
@@ -94,7 +96,7 @@ Keep searching?: 0
 
 Set a new value:
 ```
-dword value: 424242
+Value for 32-bit integer: 424242
 Value(s) modified.
 ```
 

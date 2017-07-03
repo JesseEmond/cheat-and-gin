@@ -2,9 +2,12 @@
 #define MEMORY_PAGE_H
 
 #include <cstddef>
+#include <vector>
 
-typedef unsigned char* address_t;
-typedef std::size_t size_t;
+typedef unsigned char byte_t;
+typedef std::vector<byte_t> memory_t;
+typedef byte_t* address_t;
+typedef memory_t::size_type size_t;
 
 /**
  * Memory page of the memory space of a process.

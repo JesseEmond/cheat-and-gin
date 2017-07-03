@@ -16,11 +16,12 @@ T ask_for(const std::string& message, const std::string& error);
 // Definitions
 template <class T, class Pred>
 T ask_for(const std::string& message, const std::string& error, Pred verification) {
+  static const char PROMPT = ':';
   T t;
-  std::cout << message << ": ";
+  std::cout << message << PROMPT << " ";
   while (!(std::cin >> t) || !verification(t)) {
     std::cerr << error << std::endl;
-    std::cout << message << ": ";
+    std::cout << message << PROMPT << " ";
 
     if (!std::cin) {
       std::cin.clear();

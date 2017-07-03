@@ -7,9 +7,6 @@
 #include <vector>
 #include <memory>
 
-typedef unsigned char byte_t;
-typedef std::vector<byte_t> memory_t;
-
 /**
  * Represents the process on an OS from which we canread/write from/to its
  * memory.

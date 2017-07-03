@@ -1,6 +1,6 @@
 #include "CheatEngine.h"
 #include "helper.h"
-#include "ValueType.h"
+#include "ValueTypes.h"
 #include "OS.h"
 
 #include <iostream>
@@ -20,8 +20,9 @@ int main() {
   auto process = os->open(pid);
   CheatEngine engine{*process};
 
-  const auto type = ask_for_value_type();
-  auto value = ask_for_value(type);
+  cout << "What is the type of the searched value?" << endl;
+  const auto& type = ask_for_value_type();
+  auto value = type.ask_value();
   auto matches = engine.search(value);
 
   bool done = matches.totalMatches() == 0;
@@ -33,14 +34,14 @@ int main() {
     done = !ask_for<bool>("Keep searching?", "invalid boolean");
 
     if (!done) {
-      value = ask_for_value(type);
+      value = type.ask_value();
       matches = engine.narrowDown(matches, value);
     }
   }
 
   if (matches.totalMatches() > 0) {
     cout << "What value should the new address(es) have?" << endl;
-    value = ask_for_value(type);
+    value = type.ask_value();
 
     engine.modify(matches, value);
     cout << "Value(s) modified." << endl;
@@ -58,12 +59,12 @@ pid_t ask_for_process(const OS& os) {
   vector<pid_t> processes;
 
   do {
-    string name = ask_for<string>("process name", "invalid process name");
+    string name = ask_for<string>("Process name", "invalid process name");
 
     processes = os.getProcesses(name);
 
     if (processes.empty())
-      cerr << "no process found for the given name." << endl;
+      cerr << "No process found for the given name." << endl;
   } while (processes.empty());
 
   assert(!processes.empty());

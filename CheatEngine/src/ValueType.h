@@ -1,25 +1,16 @@
 #ifndef VALUE_TYPE_H
 #define VALUE_TYPE_H
 
-#include <vector>
-#include <cstddef>
+#include "MemoryPage.h"
 
-namespace ValueTypes {
-  enum ValueTypes {
-    byte_t = 0,
-    word_t,
-    dword_t,
-    qword_t,
-    float_t,
-    double_t
-  };
-}
-typedef ValueTypes::ValueTypes ValueType;
+#include <string>
 
-static const int VALUE_TYPE_COUNT = 6;
+struct ValueType {
+  const std::string name;
 
-std::size_t value_type_size(ValueType type);
-ValueType ask_for_value_type();
-std::vector<unsigned char> ask_for_value(ValueType type);
+  ValueType(const std::string& name) : name{name} {}
+  virtual memory_t ask_value() const = 0;
+  virtual ~ValueType() = default;
+};
 
 #endif
