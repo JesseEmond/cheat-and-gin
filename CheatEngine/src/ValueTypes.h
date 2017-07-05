@@ -8,6 +8,7 @@
 #include <sstream>
 #include <memory>
 #include <array>
+#include <string>
 
 
 
@@ -21,21 +22,23 @@ struct SimpleValueType : public ValueType {
 
   memory_t ask_value() const override;
 
-protected:
-  virtual T ask(const std::string& message, const std::string& error) const;
+  virtual memory_t memory_representation(const T& value) const;
+  virtual bool is_valid(const T& value) const { return true; }
 };
 
 
 
-struct UnsignedByte : SimpleValueType<std::uint8_t> {
+// since uint8_t is a char but the user is expecting to enter a number, we need
+// to ask for a regular int and cast
+struct UnsignedByte : SimpleValueType<std::uint32_t> {
   UnsignedByte() : SimpleValueType{"unsigned byte"} {}
 
-  std::uint8_t ask(const std::string& message,
-                   const std::string& error) const override {
-    // since uint8_t is a char but the user is expecting to enter a number, we
-    // need to ask for a regular int and cast
-    return ask_for<std::uint32_t>(message, error,
-      [](uint32_t i) { return 0 <= i && i <= 255; });
+  bool is_valid(const std::uint32_t& value) const override {
+    return 0 <= value && value <= 255;  // check that it is 8 bits
+  }
+  memory_t memory_representation(const int32_t& value) const {
+    uint8_t byte = value;
+    return { byte }; // only extract 1 byte
   }
 };
 
@@ -63,21 +66,33 @@ struct Double : SimpleValueType<double> {
   Double() : SimpleValueType{"double"} {}
 };
 
+struct String : SimpleValueType<std::string> {
+  String() : SimpleValueType{"string"} {}
+
+  memory_t memory_representation(const std::string& value) const override {
+    // we can't look at the direct string representation, we need to copy the
+    // actual chars (we're not searching for the char*, we're looking for the
+    // actual chars!)
+    return memory_t(std::begin(value), std::end(value));
+  }
+};
+
 
 template <class T>
 memory_t SimpleValueType<T>::ask_value() const {
   std::stringstream query, error;
   query << "Value for " << name;
   error << "Invalid " << name;
-  auto value = ask(query.str(), error.str());
-  auto bytes = reinterpret_cast<memory_t::value_type*>(&value);
-  return memory_t(bytes, bytes + sizeof(T));
+  auto value = ask_for<T>(query.str(), error.str(), [&](const T& value) {
+    return is_valid(value);
+  });
+  return memory_representation(value);
 }
 
 template <class T>
-T SimpleValueType<T>::ask(const std::string& message,
-                          const std::string& error) const {
-  return ask_for<T>(message, error);
+memory_t SimpleValueType<T>::memory_representation(const T& value) const {
+  auto bytes = reinterpret_cast<const memory_t::value_type*>(&value);
+  return memory_t(bytes, bytes + sizeof(T));
 }
 
 #endif

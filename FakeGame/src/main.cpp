@@ -13,6 +13,7 @@ int main()
   short miles = 5;
   float rate = .1f;
   double science = .1f;
+  string message = "hello";
 
   while (health > 0) {
     show("health", health);
@@ -21,6 +22,7 @@ int main()
     show("miles", miles);
     show("rate", rate);
     show("science", science);
+    show("message", message);
 
     cin.get();
 
@@ -30,6 +32,7 @@ int main()
     miles += 10;
     rate += .2f;
     science += .003f;
+    message += "!";
   }
 
   return 0;
@@ -38,5 +41,5 @@ int main()
   template <class T>
 void show(const std::string& name, const T& value)
 {
-  cout << name << "(" << sizeof(T) << "): " << value << " - " << static_cast<const void*>(&value) << endl;
+  cout << name << ": " << value << " - " << static_cast<const void*>(&value) << endl;
 }

@@ -15,6 +15,7 @@ const std::unique_ptr<ValueType> TYPES[] = {
   std::unique_ptr<ValueType>{new Int64},
   std::unique_ptr<ValueType>{new Float},
   std::unique_ptr<ValueType>{new Double},
+  std::unique_ptr<ValueType>{new String},
 };
 const std::size_t TYPES_COUNT = std::distance(std::begin(TYPES),
                                               std::end(TYPES));
