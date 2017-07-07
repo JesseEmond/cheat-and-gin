@@ -7,6 +7,24 @@
 Such a program is popular for hacking games that are running locally, but I build one to get familiar
 with the particularities of modifying a program's memory under Window and Linux for learning purposes.
 
+## Examples
+
+### Minecraft
+Here's an example where we give ourselves `999` dirt blocks by using an old version
+of the cheat engine (the 999 blocks could actually be *placed*!):
+![Minecraft](images/minecraft.png)
+
+Now all you have to do is find `1` diamond to *actually* find `999`...
+
+*I don't actually encourage cheating in `Minecraft`. This is more of an
+interesting real test for a cheat engine... Please don't use this in
+multiplayer.*
+
+### Python REPL
+Here's an example where we modify the value of a string variable in a python
+REPL interprer. We can do the same with integers, for example.
+![Minecraft](images/python.png)
+
 ## Building
 I use `premake4` for build configuration. You can find a download link on [premake's website](https://premake.github.io).
 
