@@ -11,7 +11,7 @@
 offsets_t matching_offsets(const memory_t& haystack, const memory_t& needle);
 
 
-Matches CheatEngine::search(const memory_t& value) {
+Matches CheatEngine::search(const memory_t& value) const {
   Matches matches;
   const auto pages = process.getCheatablePages();
 
@@ -25,7 +25,7 @@ Matches CheatEngine::search(const memory_t& value) {
 }
 
 Matches CheatEngine::narrowDown(const Matches& matches,
-                                const memory_t& value) {
+                                const memory_t& value) const {
   Matches narrowed;
 
   for (const auto& match : matches.getPageMatches()) {

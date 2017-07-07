@@ -23,13 +23,13 @@ public:
   /**
    * Search the process' memory to find occurences of a certain value.
    */
-  Matches search(const memory_t& value);
+  Matches search(const memory_t& value) const;
 
   /**
    * Narrow down the address matches based on which ones now have the specified
    * value.
    */
-  Matches narrowDown(const Matches& matches, const memory_t& value);
+  Matches narrowDown(const Matches& matches, const memory_t& value) const;
 
   /**
    * Modify the matching addresses with the given value.

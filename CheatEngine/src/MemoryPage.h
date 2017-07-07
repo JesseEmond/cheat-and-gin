@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <vector>
 
-typedef unsigned char byte_t;
+typedef char byte_t;
 typedef std::vector<byte_t> memory_t;
 typedef byte_t* address_t;
 typedef memory_t::size_type size_t;

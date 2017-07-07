@@ -12,7 +12,7 @@ using namespace std;
 
 pid_t ask_for_process(const OS& os);
 pid_t choose_process(const vector<pid_t>& processes);
-Matches search_addresses(CheatEngine& engine, const ValueType& type);
+Matches search_addresses(const CheatEngine& engine, const ValueType& type);
 void show_matches(const Matches& matches);
 void modify_addresses(CheatEngine& engine, const ValueType& type,
                       const Matches& matches);
@@ -67,7 +67,7 @@ pid_t choose_process(const vector<pid_t>& processes) {
       });
 }
 
-Matches search_addresses(CheatEngine& engine, const ValueType& type) {
+Matches search_addresses(const CheatEngine& engine, const ValueType& type) {
   auto value = type.askValue();
   auto matches = engine.search(value);
 

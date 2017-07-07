@@ -10,8 +10,8 @@ public:
   WindowsProcess(pid_t pid);
   ~WindowsProcess();
 
-  std::vector<MemoryPage> getCheatablePages() override;
-  memory_t read(MemoryPage page) override;
+  std::vector<MemoryPage> getCheatablePages() const override;
+  memory_t read(MemoryPage page) const override;
   void write(address_t address, const memory_t& value) override;
 };
 

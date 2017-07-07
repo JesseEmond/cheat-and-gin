@@ -26,7 +26,7 @@ WindowsProcess::~WindowsProcess() {
   }
 }
 
-std::vector<MemoryPage> WindowsProcess::getCheatablePages() {
+std::vector<MemoryPage> WindowsProcess::getCheatablePages() const {
   std::vector<MemoryPage> pages;
 
   for (address_t address = nullptr, MEMORY_BASIC_INFORMATION page;
@@ -40,7 +40,7 @@ std::vector<MemoryPage> WindowsProcess::getCheatablePages() {
   return pages;
 }
 
-memory_t WindowsProcess::read(MemoryPage page) {
+memory_t WindowsProcess::read(MemoryPage page) const {
   memory_t memory(page.size);
 
   DWORD total;

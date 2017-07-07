@@ -13,7 +13,7 @@ class no_more_reads_stored {};
 
 
 class FakeProcess : public Process {
-  std::vector<memory_t>::size_type readIndex;
+  mutable std::vector<memory_t>::size_type readIndex;
   std::vector<written> writes;
 
 public:
@@ -28,8 +28,8 @@ public:
       pages{pages}, reads{reads},
       writes{}, readIndex{0} {}
 
-  std::vector<MemoryPage> getCheatablePages() override { return pages; }
-  memory_t read(MemoryPage) override {
+  std::vector<MemoryPage> getCheatablePages() const override { return pages; }
+  memory_t read(MemoryPage) const override {
     if (readIndex >= reads.size()) throw no_more_reads_stored{};
     return reads[readIndex++];
   }

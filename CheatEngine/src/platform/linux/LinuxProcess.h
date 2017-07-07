@@ -3,15 +3,11 @@
 
 #include "../../Process.h"
 
-class LinuxProcess : public Process {
-  phandle_t handle;
+struct LinuxProcess : public Process {
+  LinuxProcess(pid_t pid) : Process{pid} {}
 
-public:
-  LinuxProcess(pid_t pid);
-  ~LinuxProcess();
-
-  std::vector<MemoryPage> getCheatablePages() override;
-  memory_t read(MemoryPage page) override;
+  std::vector<MemoryPage> getCheatablePages() const override;
+  memory_t read(MemoryPage page) const override;
   void write(address_t address, const memory_t& value) override;
 };
 

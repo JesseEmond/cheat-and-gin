@@ -38,7 +38,7 @@ struct UnsignedByte : SimpleValueType<std::uint32_t> {
   }
   memory_t representation(const int32_t& value) const {
     uint8_t byte = value;
-    return { byte }; // only extract 1 byte
+    return { static_cast<byte_t>(byte) }; // only extract 1 byte
   }
 };
 
