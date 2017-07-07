@@ -51,13 +51,14 @@ Process name: FakeGame
 We enter `FakeGame` and we are then prompted to know the size of the variable that we want to modify:
 ```
 What is the type of the searched value?
-A - unsigned byte
-B - character
-C - 16-bit integer
-D - 32-bit integer
-E - 64-bit integer
-F - float
-G - double
+A) unsigned byte
+B) character
+C) 16-bit integer
+D) 32-bit integer
+E) 64-bit integer
+F) float
+G) double
+H) string
 Value type: D
 ```
 
@@ -89,13 +90,9 @@ We can then enter the updated value (`99`):
 Value for 32-bit integer: 99
 ```
 
-And stop searching:
-```
-Keep searching? (y/n): n
-```
-
 Set a new value:
 ```
+What value should the new address(es) have?
 Value for 32-bit integer: 424242
 Value(s) modified.
 ```
