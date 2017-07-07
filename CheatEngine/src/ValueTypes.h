@@ -20,10 +20,10 @@ template <class T>
 struct SimpleValueType : public ValueType {
   SimpleValueType(const std::string& name) : ValueType(name) {}
 
-  memory_t ask_value() const override;
+  memory_t askValue() const override;
 
-  virtual memory_t memory_representation(const T& value) const;
-  virtual bool is_valid(const T& value) const { return true; }
+  virtual memory_t representation(const T& value) const;
+  virtual bool isValid(const T& value) const { return true; }
 };
 
 
@@ -33,10 +33,10 @@ struct SimpleValueType : public ValueType {
 struct UnsignedByte : SimpleValueType<std::uint32_t> {
   UnsignedByte() : SimpleValueType{"unsigned byte"} {}
 
-  bool is_valid(const std::uint32_t& value) const override {
+  bool isValid(const std::uint32_t& value) const override {
     return 0 <= value && value <= 255;  // check that it is 8 bits
   }
-  memory_t memory_representation(const int32_t& value) const {
+  memory_t representation(const int32_t& value) const {
     uint8_t byte = value;
     return { byte }; // only extract 1 byte
   }
@@ -69,7 +69,7 @@ struct Double : SimpleValueType<double> {
 struct String : SimpleValueType<std::string> {
   String() : SimpleValueType{"string"} {}
 
-  memory_t memory_representation(const std::string& value) const override {
+  memory_t representation(const std::string& value) const override {
     // we can't look at the direct string representation, we need to copy the
     // actual chars (we're not searching for the char*, we're looking for the
     // actual chars!)
@@ -79,18 +79,18 @@ struct String : SimpleValueType<std::string> {
 
 
 template <class T>
-memory_t SimpleValueType<T>::ask_value() const {
+memory_t SimpleValueType<T>::askValue() const {
   std::stringstream query, error;
   query << "Value for " << name;
   error << "Invalid " << name;
   auto value = ask_for<T>(query.str(), error.str(), [&](const T& value) {
-    return is_valid(value);
+    return isValid(value);
   });
-  return memory_representation(value);
+  return representation(value);
 }
 
 template <class T>
-memory_t SimpleValueType<T>::memory_representation(const T& value) const {
+memory_t SimpleValueType<T>::representation(const T& value) const {
   auto bytes = reinterpret_cast<const memory_t::value_type*>(&value);
   return memory_t(bytes, bytes + sizeof(T));
 }

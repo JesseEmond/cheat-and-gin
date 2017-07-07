@@ -10,7 +10,6 @@
 TEST_CASE("CheatEngine can search for matches") {
   FakeProcess process;
   CheatEngine engine{process};
-  Matches matches;
   const std::string str = "this is a test.";
   memory_t memory{std::begin(str), std::end(str)};
   process.pages = { MemoryPage(memory.data(), memory.size()) };
@@ -87,5 +86,36 @@ TEST_CASE("CheatEngine can modify matches") {
     REQUIRE(process.getWrites()[0].second == newval);
     REQUIRE(process.getWrites()[1].first == page.start + offsets[1]);
     REQUIRE(process.getWrites()[1].second == newval);
+  }
+}
+
+TEST_CASE("CheatEngine can exit early when a match is found") {
+  FakeProcess process;
+  CheatEngine engine{process};
+  Matches matches;
+  MemoryPage page1{nullptr, 8};
+  MemoryPage page2{nullptr, 4};
+
+  SECTION("not done searching when we have multiple pages left") {
+    matches.add(page1, offsets_t{0});
+    matches.add(page2, offsets_t{1});
+
+    REQUIRE_FALSE(engine.doneSearching(matches));
+  }
+
+  SECTION("not done searching when we have multiple matches left in a single page") {
+    matches.add(page1, offsets_t{0, 1});
+
+    REQUIRE_FALSE(engine.doneSearching(matches));
+  }
+
+  SECTION("done searching when we have one match left") {
+    matches.add(page1, offsets_t{0});
+
+    REQUIRE(engine.doneSearching(matches));
+  }
+
+  SECTION("done searching when we have no matches left") {
+    REQUIRE(engine.doneSearching(matches));
   }
 }

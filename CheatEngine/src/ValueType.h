@@ -9,7 +9,7 @@ struct ValueType {
   const std::string name;
 
   ValueType(const std::string& name) : name{name} {}
-  virtual memory_t ask_value() const = 0;
+  virtual memory_t askValue() const = 0;
   virtual ~ValueType() = default;
 };
 

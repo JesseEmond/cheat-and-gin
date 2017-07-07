@@ -14,3 +14,8 @@ bool ask_yes_no(const std::string& message) {
 
   return tolower(choice) == 'y';
 }
+
+void pause() {
+  std::cin.ignore(std::cin.rdbuf()->in_avail());
+  std::cin.get();
+}

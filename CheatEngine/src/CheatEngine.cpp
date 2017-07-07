@@ -56,6 +56,10 @@ void CheatEngine::modify(const Matches& matches, const memory_t& value) {
   }
 }
 
+bool CheatEngine::doneSearching(const Matches& matches) const {
+  return matches.totalMatches() <= 1;
+}
+
 
 offsets_t matching_offsets(const memory_t& haystack, const memory_t& needle) {
   offsets_t offsets;

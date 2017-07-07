@@ -20,6 +20,7 @@ public:
 
   void add(MemoryPage page, const offsets_t& offsets);
   matches_t::size_type totalMatches() const;
+  bool any() const { return totalMatches() > 0; }
 };
 
 #endif

@@ -12,7 +12,11 @@ using namespace std;
 
 pid_t ask_for_process(const OS& os);
 pid_t choose_process(const vector<pid_t>& processes);
-void pause();
+Matches search_addresses(CheatEngine& engine, const ValueType& type);
+void show_matches(const Matches& matches);
+void modify_addresses(CheatEngine& engine, const ValueType& type,
+                      const Matches& matches);
+
 
 int main() {
   auto os = OS::getOS();
@@ -22,31 +26,11 @@ int main() {
 
   cout << "What is the type of the searched value?" << endl;
   const auto& type = ask_for_value_type();
-  auto value = type.ask_value();
-  auto matches = engine.search(value);
 
-  bool done = matches.totalMatches() == 0;
+  const auto matches = search_addresses(engine, type);
 
-  while (!done) {
-    cout << endl
-         << matches.totalMatches() << " address(es) containing the value."
-         << endl;
-    done = !ask_yes_no("Keep searching?");
-
-    if (!done) {
-      value = type.ask_value();
-      matches = engine.narrowDown(matches, value);
-    }
-  }
-
-  if (matches.totalMatches() > 0) {
-    cout << "What value should the new address(es) have?" << endl;
-    value = type.ask_value();
-
-    engine.modify(matches, value);
-    cout << "Value(s) modified." << endl;
-  } else {
-    cout << "No address(es) fit the given value(s)." << endl;
+  if (matches.any()) {
+    modify_addresses(engine, type, matches);
   }
 
   pause();
@@ -64,7 +48,7 @@ pid_t ask_for_process(const OS& os) {
     processes = os.getProcesses(name);
 
     if (processes.empty())
-      cerr << "No process found for the given name." << endl;
+      cerr << "No process found with the given name." << endl;
   } while (processes.empty());
 
   assert(!processes.empty());
@@ -83,7 +67,39 @@ pid_t choose_process(const vector<pid_t>& processes) {
       });
 }
 
-void pause() {
-  cin.ignore(cin.rdbuf()->in_avail());
-  cin.get();
+Matches search_addresses(CheatEngine& engine, const ValueType& type) {
+  auto value = type.askValue();
+  auto matches = engine.search(value);
+
+  bool done;
+  do {
+    show_matches(matches);
+    done = engine.doneSearching(matches) || !ask_yes_no("Keep searching?");
+
+    if (!done) {
+      value = type.askValue();
+      matches = engine.narrowDown(matches, value);
+    }
+  } while(!done);
+
+  return matches;
+}
+
+void show_matches(const Matches& matches) {
+  cout << endl;
+
+  if (matches.any()) cout << matches.totalMatches();
+  else cout << "No";
+
+  cout << " address(es) containing the value."
+       << endl;
+}
+
+void modify_addresses(CheatEngine& engine, const ValueType& type,
+                      const Matches& matches) {
+  cout << "What value should the new address(es) have?" << endl;
+  const auto value = type.askValue();
+
+  engine.modify(matches, value);
+  cout << "Value(s) modified." << endl;
 }
