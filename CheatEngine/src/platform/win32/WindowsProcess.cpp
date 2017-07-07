@@ -55,7 +55,8 @@ memory_t WindowsProcess::read(MemoryPage page) const {
 }
 
 void WindowsProcess::write(address_t address, const memory_t& value) {
-  if (!WriteProcess(handle, address, value.data(), value.size(), nullptr)) {
+  if (!WriteProcessMemory(handle, address,
+                          value.data(), value.size(), nullptr)) {
     std::cerr << "Failed to write to the process' memory." << std::endl;
   }
 }
