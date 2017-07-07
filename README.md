@@ -25,6 +25,10 @@ Here's an example where we modify the value of a string variable in a python
 REPL interprer. We can do the same with integers, for example.
 ![Minecraft](images/python.png)
 
+## How?!
+A description of how a cheat engine works (and what platform functions are used) is provided in 
+[the `CheatEngine`'s `README`](CheatEngine/README.md).
+
 ## Building
 I use `premake4` for build configuration. You can find a download link on [premake's website](https://premake.github.io).
 
