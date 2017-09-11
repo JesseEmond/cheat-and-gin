@@ -33,7 +33,6 @@ int main() {
     modify_addresses(engine, type, matches);
   }
 
-  pause();
   return 0;
 }
 

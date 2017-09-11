@@ -15,10 +15,6 @@ T ask_for(const std::string& message, const std::string& error);
  * Ask for a yes/no boolean answer.
  */
 bool ask_yes_no(const std::string& message);
-/**
- * Console pause that waits for input from the user before exiting.
- */
-void pause();
 
 
 

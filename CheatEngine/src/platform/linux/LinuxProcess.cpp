@@ -49,6 +49,11 @@ memory_t LinuxProcess::read(MemoryPage page) const {
   LinuxProcessLocker lock{pid};
 
   std::ifstream memory{memory_filename(pid)};
+  if (!memory) {
+    std::cerr << "Failed to open memory file of process." << std::endl;
+    exit(1);
+  }
+
   memory_t data(page.size);
   const long start = reinterpret_cast<long>(page.start);
 

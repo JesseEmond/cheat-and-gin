@@ -12,6 +12,7 @@ project "CheatEngine"
                 files { "src/platform/win32/*.cpp", "src/platform/win32/*.h" }
         elseif os.is("linux") then
                 files { "src/platform/linux/*.cpp", "src/platform/linux/*.h" }
+                include "integration"
 	end
 
         include "tests"

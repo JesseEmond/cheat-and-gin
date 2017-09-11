@@ -16,6 +16,7 @@ before_script:
 script:
   - make -C build
   - ./CheatEngine/tests/bin/Tests
+  - sudo ./CheatEngine/integration/bin/IntegrationTest
 
 addons:
   apt:
