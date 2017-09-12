@@ -24,6 +24,7 @@ struct SimpleValueType : public ValueType {
 
   virtual memory_t representation(const T& value) const;
   virtual bool isValid(const T& value) const { return true; }
+  virtual std::istream& read(std::istream& in, T& t) const { return in >> t; }
 };
 
 
@@ -69,10 +70,15 @@ struct Double : SimpleValueType<double> {
 struct String : SimpleValueType<std::string> {
   String() : SimpleValueType{"string"} {}
 
+  std::istream& read(std::istream& in, std::string& value) const override {
+    in.ignore();
+    return std::getline(in, value);
+  }
+
   memory_t representation(const std::string& value) const override {
-    // we can't look at the direct string representation, we need to copy the
-    // actual chars (we're not searching for the char*, we're looking for the
-    // actual chars!)
+    // we can't look at the direct std::string representation, we need to copy
+    // the actual chars (we're not searching for the internal char* and other
+    // members, we're looking for the actual chars!)
     return memory_t(std::begin(value), std::end(value));
   }
 };
@@ -83,9 +89,9 @@ memory_t SimpleValueType<T>::askValue() const {
   std::stringstream query, error;
   query << "Value for " << name;
   error << "Invalid " << name;
-  auto value = ask_for<T>(query.str(), error.str(), [&](const T& value) {
-    return isValid(value);
-  });
+  const Validator<T> validate = [&](const T& value) { return isValid(value); };
+  const Reader<T> read_value = [&](std::istream& in, T& t) -> std::istream& { return read(in, t); };
+  const auto value = ask_for<T>(query.str(), error.str(), validate, read_value);
   return representation(value);
 }
 

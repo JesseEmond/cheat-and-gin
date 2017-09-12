@@ -13,7 +13,7 @@ int main()
   short miles = 5;
   float rate = .1f;
   double science = .1f;
-  string message = "hello";
+  string message = "hello world";
 
   while (health > 0) {
     show("health", health);
