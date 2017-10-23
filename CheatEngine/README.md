@@ -40,7 +40,7 @@ To modify another process' memory, we use [`process_vm_writev`](https://linux.di
 
 ## Windows
 ## Getting Access
-TO be able to interact with the other process, we open it using the [`PROCESS_ALL_ACCESS`](https://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx)
+To be able to interact with the other process, we open it using the [`PROCESS_ALL_ACCESS`](https://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx)
 flag.
 
 ## Memory Pages
