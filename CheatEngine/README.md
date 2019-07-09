@@ -39,16 +39,16 @@ on the extracted page starts/sizes).
 To modify another process' memory, we use [`process_vm_writev`](https://linux.die.net/man/2/process_vm_writev).
 
 ## Windows
-## Getting Access
+### Getting Access
 To be able to interact with the other process, we open it using the [`PROCESS_ALL_ACCESS`](https://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx)
 flag.
 
-## Memory Pages
+### Memory Pages
 We can cycle through the memory pages of the process by calling the [`VirtualQueryEx`](https://msdn.microsoft.com/en-us/library/windows/desktop/aa366907(v=vs.85).aspx)
 function.
 
-## Read Memory
+### Read Memory
 We can read memory by calling [`ReadProcessMemory`](https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553(v=vs.85).aspx).
 
-## Write Memory
+### Write Memory
 We can write to memory by calling [`WriteProcessMemory`](https://msdn.microsoft.com/en-us/library/windows/desktop/ms681674(v=vs.85).aspx).
